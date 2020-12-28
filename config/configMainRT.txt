@@ -1,5 +1,5 @@
 ########################
-# TESTING GIT IGNORE
+# TESTING GIT IGNORE take 2
 # This file defines the configuration parameters for glider toolbox in delayed mode 
 # processing by main_glider_data_processing_rt. Users can add any parameter 
 # of the configuration to overwrite the default values. For detailed information
