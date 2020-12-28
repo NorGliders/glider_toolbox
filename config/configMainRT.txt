@@ -28,7 +28,6 @@
 
 #########################
 # Database
-# https://api.elephantsql.com, user: fionaelliott00@gmail.com, PW: ARRmbF@drpa33TV 
 
     db_access.active    = 0
     db_access.server    = # jdbc:postgresql://mydb.myportal.mydomain:5433/my_data_base
