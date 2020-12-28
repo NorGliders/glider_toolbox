@@ -1,6 +1,4 @@
 ########################
-# NorGliders
-# 2020.12.28 FE Initial
 #
 # This file defines the configuration parameters for glider toolbox in delayed mode 
 # processing by main_glider_data_processing_rt. Users can add any parameter 
@@ -32,11 +30,11 @@
 # Database
 # https://api.elephantsql.com, user: fionaelliott00@gmail.com, PW: ARRmbF@drpa33TV 
 
-    db_access.active    = 1
-    db_access.server    = jdbc:postgres://ifdwjuni:eVE6bxfJnuDY5DJ3ppfIs7tMIOkGWiCz@hattie.db.elephantsql.com:5432/ifdwjuni # jdbc:postgresql://mydb.myportal.mydomain:5433/my_data_base
-    db_access.name      = ifdwjuni
-    db_access.user      = ifdwjuni
-    db_access.pass      = eVE6bxfJnuDY5DJ3ppfIs7tMIOkGWiCz
+    db_access.active    = 0
+    db_access.server    = # jdbc:postgresql://mydb.myportal.mydomain:5433/my_data_base
+    db_access.name      = name
+    db_access.user      = user
+    db_access.pass      = top.secret
     db_access.driver    = org.postgresql.Driver
 
 #########################
