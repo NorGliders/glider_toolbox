@@ -1,4 +1,7 @@
-##
+########################
+# NorGliders
+# 2020.12.28 FE Initial
+#
 # This file defines the configuration parameters for glider toolbox in delayed mode 
 # processing by main_glider_data_processing_rt. Users can add any parameter 
 # of the configuration to overwrite the default values. For detailed information
@@ -10,8 +13,6 @@
 #
 # Edit the data paths, the dockserver and the database information according to your needs.
 # 
-##
-
 
 ########################
 # Processing mode
@@ -21,7 +22,7 @@
 ########################
 # Paths to local and public data
     
-    local_paths.base_dir = /path/to/local/folders
+    local_paths.base_dir = /home/localuser/glider/process/
     
     public_paths.base_dir          = /path/to/public/folders
     public_paths.base_url          = http://your.public.url/path/to/data
@@ -29,16 +30,18 @@
 
 #########################
 # Database
+# https://api.elephantsql.com, user: fionaelliott00@gmail.com, PW: ARRmbF@drpa33TV 
 
-    db_access.active    = 0
-    db_access.server    = jdbc:postgresql://mydb.myportal.mydomain:5433/my_data_base
-    db_access.name      = my_data_base
-    db_access.user      = db_user
-    db_access.pass      = top_secret
+    db_access.active    = 1
+    db_access.server    = jdbc:postgres://ifdwjuni:eVE6bxfJnuDY5DJ3ppfIs7tMIOkGWiCz@hattie.db.elephantsql.com:5432/ifdwjuni # jdbc:postgresql://mydb.myportal.mydomain:5433/my_data_base
+    db_access.name      = ifdwjuni
+    db_access.user      = ifdwjuni
+    db_access.pass      = eVE6bxfJnuDY5DJ3ppfIs7tMIOkGWiCz
     db_access.driver    = org.postgresql.Driver
 
 #########################
 # Dockserver
+# USing different data retrieval method, possible adapt this later
 
     dockservers.active           = 1
     dockservers.remote_base_dir  = /var/opt/gmc/gliders

@@ -182,8 +182,8 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 % Configuration and deployment files
-configuration_file = 'configMainRT.txt';
-deployment_file    = 'deploymentRT.txt';
+configuration_file   = 'configMainRT.txt';
+deployment_file      = 'deploymentRT.txt';
 
 % required parameters of deployment structure
 required_deployment_strparam = {'deployment_name', 'glider_name', ...
@@ -195,7 +195,7 @@ required_deployment_numparam = {'deployment_id', ...
 glider_toolbox_dir = configGliderToolboxPath();
 glider_toolbox_ver = configGliderToolboxVersion();
 
-fconfig = fullfile(glider_toolbox_dir, 'config', configuration_file);
+fconfig = fullfile(configuration_folder, 'config', configuration_file);
 config = setupConfiguration(glider_toolbox_dir, 'fconfig', fconfig);
 
 deployment_file = fullfile(glider_toolbox_dir, 'config', deployment_file);
