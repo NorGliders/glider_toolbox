@@ -1,0 +1,3 @@
+% clc & clear
+clc
+clear

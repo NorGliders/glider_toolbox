@@ -735,7 +735,23 @@ for deployment_idx = 1:numel(deployment_list)
   end
 
 
-  %% Process preprocessed glider data.
+  if ~isempty(fieldnames(data_raw))
+    disp('Preprocessing raw data...');
+    try
+      switch glider_type 
+        case 'seaglider'
+          seaglider_time_sensor_select = ...
+            strcmp('elaps_t', {preprocessing_options.time_list.time});
+          preprocessing_options.time_list(seaglider_time_sensor_select).conversion = ...
+            @(t)(t +  meta_raw.start_secs);
+      end
+      [data_preprocessed, meta_preprocessed] = ...
+        preprocessGliderData(data_raw, meta_raw, preprocessing_options);
+    catch exception
+      disp('Error preprocessing glider deployment data:');
+      disp(getReport(exception, 'extended'));
+    end
+  end  %% Process preprocessed glider data.
   if ~isempty(fieldnames(data_preprocessed))
     disp('Processing glider data...');
     try

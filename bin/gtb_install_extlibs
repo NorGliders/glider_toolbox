@@ -160,6 +160,7 @@ fi
 
 ##
 # GCP libraries
+# http://apt.cs.manchester.ac.uk/ftp/pub/toby/gpc/
 echo ""
 echo "***************";
 echo "* GPC LIBRARY *";

@@ -196,7 +196,7 @@ function figure_info = generateGliderFigures(data, figure_list, varargin)
   
   %% Generate figures given in figure list, if data is available.
   figure_key_list = fieldnames(figure_list);
-  for figure_key_idx = 1:numel(figure_key_list);
+  for figure_key_idx = 1:numel(figure_key_list)
     % Get current figure key and settings.
     figure_key = figure_key_list{figure_key_idx};
     figure_plot = figure_list.(figure_key);

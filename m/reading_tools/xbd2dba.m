@@ -133,6 +133,11 @@ function dba_file_full = xbd2dba(dbd_files, dba_file, varargin)
   % would produce an empty file that should be removed afterwards. To prevent
   % this, capture the output of the dbd2asc in a string and write it to a file
   % only when conversion succeeds.
+
+  %  '/home/localuser/glider/matlab/glider_toolbox/ext_lib/bin/dbd2asc -c /home/localuser/glider/data/real_time/201101-svinoy-durin/binary/cache durin-2020-332-1-3.sbd'
+  
+  %cmd_bin = '/home/localuser/glider/data/real_time/201101-svinoy-durin/binary/durin-2020-332-1-3.sbd'
+  
   cmd_name = options.cmdname;
   cmd_opts = options.cmdopts;
   cac_path = options.cache;
@@ -140,6 +145,7 @@ function dba_file_full = xbd2dba(dbd_files, dba_file, varargin)
     cmd_str = [cmd_name ' ' cmd_opts ' ' input_str];
   else
     cmd_str = [cmd_name ' -c ' cac_path ' ' cmd_opts ' ' input_str];
+    %cmd_str = [cmd_name ' -c ' cac_path ' ' cmd_bin];
   end
   [status, cmd_out] = system(cmd_str);
   if status ~= 0

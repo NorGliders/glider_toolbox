@@ -182,7 +182,7 @@ function imginfo = printfigure(varargin)
   %% Set plot options and default values.
   options = struct();
   options.dirname = pwd();
-  options.filename = sprintf('%s', args{:}.filename); %  sprintf('figure%03d', hfig);
+  options.filename = sprintf('figure%03d', args{:}.filename); % hfig
   options.format = 'eps';
   options.resolution = 72;
   options.date = datestr(now(), 31);

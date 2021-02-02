@@ -47,50 +47,51 @@ function [sql_query, deployment_fields] = configRTDeploymentInfoQueryDB()
   % Select the deployment fields.
   % First column is deployment field
   % Second column is column in data base table.
+  % Edit for UIB OGDB - FE 18.01.2021
   fields_map = {
     'deployment_id'          'deployment_id'
     'deployment_name'        'deployment_name'
-    'deployment_start'       'deployment_initial_date'
-    'deployment_end'         'deployment_end_date'
-    'glider_name'            'platform_name'
-    'glider_serial'          'instrument_serial'
-    'glider_model'           'instrument_model'
-    'glider_instrument_name' 'instrument_name'
-    'glider_deployment_code' 'deployment_code'
+    'deployment_start'       'deployment_start'
+    'deployment_end'         'deployment_end'
+    'glider_name'            'glider_name'
+    'glider_serial'          'glider_serial'
+    'glider_model'           'glider_model'
+    'glider_instrument_name' 'glider_instrument_name'
+    'glider_deployment_code' 'deployment_name'
     % Optional fields for global attributes.
-    'abstract'                     'deployment_description'
-    'acknowledgement'              'deployment_acknowledgement'
-    'author'                       'deployment_author'
-    'author_email'                 'deployment_author_email'
-    'creator'                      'deployment_author'
-    'creator_email'                'deployment_author_email'
-    'creator_url'                  'deployment_author_url'
-    'data_center'                  'deployment_data_center'
-    'data_center_email'            'deployment_data_center_email'
-    'institution'                  'institution_name'
+    'abstract'                     'abstract'
+    'acknowledgement'              'acknowledgement'
+    'author'                       'author'
+    'author_email'                 'author_email'
+    'creator'                      'creator'
+    'creator_email'                'creator_email'
+    'creator_url'                  'creator_url'
+    'data_center'                  'data_center'
+    'data_center_email'            'data_center_email'
+    'institution'                  'institution'
     'institution_references'       'institution_references'
-    'instrument'                   'instrument_name'
+    'instrument'                   'instrument'
     'instrument_manufacturer'      'instrument_manufacturer'
     'instrument_model'             'instrument_model'
-    'license'                      'deployment_license'
-    'principal_investigator'       'deployment_principal_investigator'
-    'principal_investigator_email' 'deployment_principal_investigator_email'
-    'project'                      'deployment_project'
-    'publisher'                    'deployment_publisher_name'
-    'publisher_email'              'deployment_publisher_email'
-    'publisher_url'                'deployment_publisher_url'
-    'summary'                      'deployment_description'
+    'license'                      'license'
+    'principal_investigator'       'principal_investigator'
+    'principal_investigator_email' 'principal_investigator_email'
+    'project'                      'project'
+    'publisher'                    'publisher'
+    'publisher_email'              'publisher_email'
+    'publisher_url'                'publisher_url'
+    'summary'                      'summary'
     % fields added for the EGO format
-    'citation'                     'deployment_acknowledgement'
-    'wmo_platform_code'            'platform_wmo_platform_code'
-    'platform_code'                'platform_platform_code'
-    'deployment_label'             'deployment_name'
+    'citation'                     'citation'
+    'wmo_platform_code'            'wmo_platform_code'
+    'platform_code'                'platform_code'
+    'deployment_label'             'deployment_label'
     'id'                           'deployment_name'
     'deployment_cruise_id'         'deployment_cruise_id'
-    'glider_owner'                 'institution_name'
-    'operating_institution'        'deployment_data_center' 
-    'platform_type'                'instrument_model'
-    'platform_maker'               'instrument_manufacturer'
+    'glider_owner'                 'glider_owner'
+    'operating_institution'        'operating_institution'
+    'platform_type'                'platform_type'
+    'platform_maker'               'platform_maker'
   };
 
   deployment_fields = fields_map(:,1)';
@@ -99,18 +100,23 @@ function [sql_query, deployment_fields] = configRTDeploymentInfoQueryDB()
   % Build the query.
   database_fields_str = ...
     [sprintf('%s, ', database_fields{1:end-1}) database_fields{end}];
-  sql_query = ['select ' database_fields_str ...
-               '  from instrumentation.deployment' ...
-               '  inner join instrumentation.instrument' ...
-               '    on (deployment_instrument_id=instrument_id)' ...
-               '  inner join instrumentation.instrument_type' ...
-               '    on (instrument_instrument_type_id=instrument_type_id)' ...
-               '  inner join instrumentation.instrument_platform' ...
-               '    on (instrument_platform_instrument_id=instrument_id and instrument_platform_installation_date < now() and (instrument_platform_uninstallation_date is null or instrument_platform_uninstallation_date > now()))' ...
-               '  inner join instrumentation.platform' ...
-               '    on (instrument_platform_platform_id = platform_id)' ...
-               '  inner join instrumentation.institution' ...
-               '    on (deployment_institution_id=institution_id)' ...
-               '  where (instrument_type_name~*''glider'' and deployment_initial_date < now() and deployment_finished=false);'];
+  % UIB query
+  sql_query = ['SELECT ' database_fields_str ' FROM public.main WHERE (status=''active'');'];
+  %test = fetch(conn, sql);
+
+%   sql_query = ['select ' database_fields_str ...
+%                '  from instrumentation.deployment' ...
+%                '  inner join instrumentation.instrument' ...
+%                '    on (deployment_instrument_id=instrument_id)' ...
+%                '  inner join instrumentation.instrument_type' ...close(conn);
+%                '    on (instrument_instrument_type_id=instrument_type_id)' ...
+%                '  inner join instrumentation.instrument_platform' ...
+%                '    on (instrument_platform_instrument_id=instrument_id and instrument_platform_installation_date < now() and (instrument_platform_uninstallation_date is null or instrument_platform_uninstallation_date > now()))' ...
+%                '  inner join instrumentation.platform' ...
+%                '    on (instrument_platform_platform_id = platform_id)' ...
+%                '  inner join instrumentation.institution' ...
+%                '    on (deployment_institution_id=institution_id)' ...
+%                '  where (instrument_type_name~*''glider'' and deployment_initial_date < now() and deployment_finished=false);'];
+
 
 end

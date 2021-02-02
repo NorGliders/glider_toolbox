@@ -346,10 +346,12 @@ function [data_grid, meta_grid] = gridGliderData(data_proc, meta_proc, varargin)
   end
   %%}
 
-  c = data_grid.chlorophyll;
-  cv = reshape(c,numel(c),1);
-  cs = tabulate(cv);
-  plot(cs(:,1),cs(:,3))
+  if isfield(data_grid, 'chlorophyll')
+      c = data_grid.chlorophyll;
+      cv = reshape(c,numel(c),1);
+      cs = tabulate(cv);
+      plot(cs(:,1),cs(:,3))
+  end
   
   %% Add gridding metadata:
   meta_grid.profile_index = meta_proc.(profile_sequence);
