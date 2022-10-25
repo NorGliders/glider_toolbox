@@ -1,0 +1,60 @@
+#!/bin/bash
+
+########
+# This script installs the glider toolbox dependencies
+#######
+
+##
+# Definitions 
+echo "";
+default_path='../ext_lib/';
+GBT_EXT_PATH=$(cd $default_path;pwd);
+if [[ $# -ge 1 ]]; then 
+  if [[ ! -d $1 ]]; then
+    echo "Input path $1 does not exist";
+    exit 1;
+  fi
+  GBT_EXT_PATH=$(cd $1;pwd);
+elif [[ ! -d $default_path ]]; then 
+  echo "Default path $default_path is missed";
+  echo "Input argument is required for external library path";
+  exit 1;
+fi
+
+echo "PATH DEFINITIONS:";
+echo "      - ROOT: $GBT_EXT_PATH";
+
+GBT_EXTLIB_PATH="${GBT_EXT_PATH}/lib/";
+echo "      - External libraries: $GBT_EXTLIB_PATH";
+if [[ ! -d ${GBT_EXT_PATH}/lib/ ]]; then
+  mkdir -p ${GBT_EXT_PATH}/lib/;
+  echo "              ... creating directory";
+fi
+
+
+
+GBT_EXTGPC_PATH="${GBT_EXT_PATH}/gpcl/";
+echo "      - GPC library: $GBT_EXTGPC_PATH";
+if [[ ! -d ${GBT_EXTGPC_PATH} ]]; then
+  mkdir -p ${GBT_EXTGPC_PATH};
+  echo "              ... creating directory";
+fi
+
+
+
+##
+# GCP libraries
+# http://apt.cs.manchester.ac.uk/ftp/pub/toby/gpc/
+echo ""
+echo "***************";
+echo "* GPC LIBRARY *";
+echo "***************";
+echo "";
+
+cd ${GBT_EXTGPC_PATH};
+echo "setting  GPC simlink";
+
+ln -s ${GBT_EXTGPC_PATH} ${GBT_EXT_PATH}/../m/mex_tools/gpcl
+
+
+

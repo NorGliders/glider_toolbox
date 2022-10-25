@@ -35,12 +35,13 @@ function [glider_toolbox_dir] = configGliderToolboxPath()
   narginchk(0, 0);
 
   [glider_toolbox_dir, ~, ~] = fileparts(mfilename('fullpath'));
-  addpath(genpath(glider_toolbox_dir));
-
+  % addpath(genpath(glider_toolbox_dir));  FE
+  
   glider_toolbox_dir = fullfile(glider_toolbox_dir, '..');
   curDir = pwd();
   cd(glider_toolbox_dir);
   glider_toolbox_dir = pwd();
   cd(curDir);
+  addpath(genpath(glider_toolbox_dir)); 
   
 end

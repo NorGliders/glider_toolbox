@@ -222,7 +222,7 @@ function [ config ] = setupConfiguration( glider_toolbox_dir, varargin)
     if ~strcmp(options.fconfig, '')
         readconfig = readConfigFile(options.fconfig,'array_delimiter', options.array_delimiter);
         config.status = options.fconfig;
-        disp(['Configuration file ' options.fconfig]);
+        disp(['The configuration file for this script is located here: ' options.fconfig]);
     else 
         disp('No configuration file was input');
         config.status = '';
@@ -588,7 +588,12 @@ function [ config ] = setupConfiguration( glider_toolbox_dir, varargin)
         error('glider_toolbox:setupConfiguration:InvalidOption', ...
                 'Invalid processing mode: %s.', config.processing_mode);
     end
-
+    
+    
+    %% Sensor units
+    if ~isempty(readconfig) && isfield(readconfig, 'sensor_units_slocum')
+        config.sensor_units_slocum = readconfig.sensor_units_slocum;
+    end
 
 end
 

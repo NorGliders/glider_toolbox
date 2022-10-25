@@ -59,6 +59,9 @@ function [figures_proc, figures_grid] = configFigures()
   % so make this explicit in source code.
   hfig = gcf();
   
+  % Configure often changed variables here - NIWA
+  markerSize = 6; % For CDATA
+  
   
   %% Set built-in default values for some figure and axes properties.
   % Figure properties.
@@ -67,10 +70,10 @@ function [figures_proc, figures_grid] = configFigures()
   set(0,'DefaultFigurePaperPosition', [0 0 6.40 3.84]);
   set(0,'DefaultFigurePaperPositionMode','manual');
   set(0,'DefaultFigureColor', 'white');
-  set(0,'DefaultFigureColormap', colormap('jet'));
+  set(0,'DefaultFigureColormap', colormap('parula'));
   set(0,'DefaultFigureInvertHardcopy','off');
   % Axes properties.
-  set(0, 'DefaultAxesColor', 0.8 * ones(1,3));
+  set(0, 'DefaultAxesColor',[0.8945    0.8984    0.9063]); % FE 29.09.21  0.8 * ones(1,3)
   set(0, 'DefaultAxesBox', 'on');
   set(0, 'DefaultAxesXGrid', 'on');
   set(0, 'DefaultAxesYGrid', 'on');
@@ -96,7 +99,7 @@ function [figures_proc, figures_grid] = configFigures()
   default_figure.PaperPosition = [0 0 6.40 3.84];
   default_figure.PaperPositionMode = 'manual';
   default_figure.Color = 'white';
-  default_figure.Colormap = colormap('jet');
+  default_figure.Colormap = colormap('parula');
   default_figure.InvertHardcopy = 'off';
   
   default_axes = struct();
@@ -104,7 +107,7 @@ function [figures_proc, figures_grid] = configFigures()
   default_axes.FontUnits ='points';
   default_axes.FontSize = 8;
   default_axes.FontWeight = 'normal';
-  default_axes.Color = 0.8 * ones(1,3);
+  default_axes.Color =  [0.8945    0.8984    0.9063]; % FE 29.09.21  0.8 * ones(1,3)
   default_axes.Box = 'on';
   default_axes.XGrid = 'on';
   default_axes.YGrid = 'on';
@@ -125,6 +128,25 @@ function [figures_proc, figures_grid] = configFigures()
   
   %% Configure processed data figures.
   figures_proc = struct();
+  
+%   % Testing flight plots
+%   figures_raw.generic = struct();
+%   figures_raw.generic.plotfunc = @plotTransectVerticalSection;
+%   figures_raw.generic.dataopts.xdata = 'time';
+%   figures_raw.generic.dataopts.ydata1 = '';
+%   figures_raw.generic.dataopts.ydata2 = '';
+%   figures_raw.generic.dataopts.ydata3 = {'depth_ctd' 'depth'};
+%   figures_raw.generic.plotopts.sdata = markerSize; 
+%   figures_raw.generic.plotopts.logscale = false;
+%   figures_raw.generic.plotopts.xlabel = setfield(default_label);
+%   figures_raw.generic.plotopts.ylabel = setfield(default_label);
+%   figures_raw.generic.plotopts.title = setfield(default_title, 'String');
+%   figures_raw.generic.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
+%   figures_raw.generic.plotopts.figprops = default_figure;
+%   figures_raw.generic.prntopts = default_prntopts;
+%   figures_raw.generic.prntopts.filename = '';
+%   figures_raw.generic.prntopts.title = '';
+%   figures_raw.generic.prntopts.comment = '';
 
   % Vertical section plots.
   figures_proc.temperature = struct();
@@ -132,7 +154,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.temperature.dataopts.xdata = 'distance_over_ground';
   figures_proc.temperature.dataopts.ydata = {'depth_ctd' 'depth'};
   figures_proc.temperature.dataopts.cdata = 'temperature';
-  figures_proc.temperature.plotopts.sdata = 2;
+  figures_proc.temperature.plotopts.sdata = markerSize; 
   figures_proc.temperature.plotopts.logscale = false;
   figures_proc.temperature.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.temperature.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -141,16 +163,35 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.temperature.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
   figures_proc.temperature.plotopts.figprops = default_figure;
   figures_proc.temperature.prntopts = default_prntopts;
-  figures_proc.temperature.prntopts.filename = 'temperature';
+  figures_proc.temperature.prntopts.filename = 'temperature_distance';
   figures_proc.temperature.prntopts.title = 'Temperature section';
   figures_proc.temperature.prntopts.comment = 'Cross section of in situ measured temperature.';
+  
+  figures_proc.temperaturetime = struct();
+  figures_proc.temperaturetime.plotfunc = @plotTransectVerticalSection;
+  figures_proc.temperaturetime.dataopts.xdata = 'time';
+  figures_proc.temperaturetime.dataopts.ydata = {'depth_ctd' 'depth'};
+  figures_proc.temperaturetime.dataopts.cdata = 'temperature';
+  figures_proc.temperaturetime.plotopts.sdata = markerSize; 
+  figures_proc.temperaturetime.plotopts.logscale = false;
+  figures_proc.temperaturetime.plotopts.xlabel = setfield(default_label, 'String', 'time');
+  figures_proc.temperaturetime.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
+  figures_proc.temperaturetime.plotopts.clabel = setfield(default_label, 'String', 'temperature (deg C)');
+  figures_proc.temperaturetime.plotopts.title = setfield(default_title, 'String', 'In situ temperature');
+  figures_proc.temperaturetime.plotopts.dateticks = 'x';
+  figures_proc.temperaturetime.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
+  figures_proc.temperaturetime.plotopts.figprops = default_figure;
+  figures_proc.temperaturetime.prntopts = default_prntopts;
+  figures_proc.temperaturetime.prntopts.filename = 'temperature_time';
+  figures_proc.temperaturetime.prntopts.title = 'Temperature section';
+  figures_proc.temperaturetime.prntopts.comment = 'Temporal cross section of in situ measured temperature.';
   
   figures_proc.salinity = struct();
   figures_proc.salinity.plotfunc = @plotTransectVerticalSection;
   figures_proc.salinity.dataopts.xdata = 'distance_over_ground';
   figures_proc.salinity.dataopts.ydata = {'depth_ctd' 'depth'};
   figures_proc.salinity.dataopts.cdata = 'salinity';
-  figures_proc.salinity.plotopts.sdata = 2;
+  figures_proc.salinity.plotopts.sdata = markerSize;
   figures_proc.salinity.plotopts.logscale = false;
   figures_proc.salinity.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.salinity.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -159,16 +200,35 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.salinity.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
   figures_proc.salinity.plotopts.figprops = default_figure;
   figures_proc.salinity.prntopts = default_prntopts;
-  figures_proc.salinity.prntopts.filename = 'salinity';
+  figures_proc.salinity.prntopts.filename = 'salinity_distance';
   figures_proc.salinity.prntopts.title = 'Salinity section';
   figures_proc.salinity.prntopts.comment = 'Cross section of in situ derived salinity without corrections.';
+  
+  figures_proc.salinitytime = struct();
+  figures_proc.salinitytime.plotfunc = @plotTransectVerticalSection;
+  figures_proc.salinitytime.dataopts.xdata = 'time';
+  figures_proc.salinitytime.dataopts.ydata = {'depth_ctd' 'depth'};
+  figures_proc.salinitytime.dataopts.cdata = 'salinity';
+  figures_proc.salinitytime.plotopts.sdata = markerSize;
+  figures_proc.salinitytime.plotopts.logscale = false;
+  figures_proc.salinitytime.plotopts.xlabel = setfield(default_label, 'String', 'time');
+  figures_proc.salinitytime.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
+  figures_proc.salinitytime.plotopts.clabel = setfield(default_label, 'String', 'salinity (PSU)');
+  figures_proc.salinitytime.plotopts.title = setfield(default_title, 'String', 'In situ salinity (raw)');
+  figures_proc.salinitytime.plotopts.dateticks = 'x';
+  figures_proc.salinitytime.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
+  figures_proc.salinitytime.plotopts.figprops = default_figure;
+  figures_proc.salinitytime.prntopts = default_prntopts;
+  figures_proc.salinitytime.prntopts.filename = 'salinity_time';
+  figures_proc.salinitytime.prntopts.title = 'Salinity section';
+  figures_proc.salinitytime.prntopts.comment = 'Temporal cross section of in situ derived salinity without corrections.';
 
   figures_proc.salinity_corrected_thermal = struct();
   figures_proc.salinity_corrected_thermal.plotfunc = @plotTransectVerticalSection;
   figures_proc.salinity_corrected_thermal.dataopts.xdata = 'distance_over_ground';
   figures_proc.salinity_corrected_thermal.dataopts.ydata = {'depth_ctd' 'depth'};
   figures_proc.salinity_corrected_thermal.dataopts.cdata = 'salinity_corrected_thermal';
-  figures_proc.salinity_corrected_thermal.plotopts.sdata = 2;
+  figures_proc.salinity_corrected_thermal.plotopts.sdata = markerSize;
   figures_proc.salinity_corrected_thermal.plotopts.logscale = false;
   figures_proc.salinity_corrected_thermal.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.salinity_corrected_thermal.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -177,7 +237,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.salinity_corrected_thermal.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
   figures_proc.salinity_corrected_thermal.plotopts.figprops = default_figure;
   figures_proc.salinity_corrected_thermal.prntopts = default_prntopts;
-  figures_proc.salinity_corrected_thermal.prntopts.filename = 'salinity_corrected_thermal';
+  figures_proc.salinity_corrected_thermal.prntopts.filename = 'salinity_corrected_thermal_distance';
   figures_proc.salinity_corrected_thermal.prntopts.title = 'Salinity section';
   figures_proc.salinity_corrected_thermal.prntopts.comment = 'Cross section of in situ derived salinity with thermal lag corrections.';
 
@@ -186,7 +246,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.density.dataopts.xdata = 'distance_over_ground';
   figures_proc.density.dataopts.ydata = {'depth_ctd' 'depth'};
   figures_proc.density.dataopts.cdata = 'density';
-  figures_proc.density.plotopts.sdata = 2;
+  figures_proc.density.plotopts.sdata = markerSize;
   figures_proc.density.plotopts.logscale = false;
   figures_proc.density.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.density.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -195,16 +255,35 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.density.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
   figures_proc.density.plotopts.figprops = default_figure;
   figures_proc.density.prntopts = default_prntopts;
-  figures_proc.density.prntopts.filename = 'density';
+  figures_proc.density.prntopts.filename = 'density_distance';
   figures_proc.density.prntopts.title = 'Density section';
   figures_proc.density.prntopts.comment = 'Cross section of in situ derived density from salinity without corrections.';
+  
+  figures_proc.densitytime = struct();
+  figures_proc.densitytime.plotfunc = @plotTransectVerticalSection;
+  figures_proc.densitytime.dataopts.xdata = 'time';
+  figures_proc.densitytime.dataopts.ydata = {'depth_ctd' 'depth'};
+  figures_proc.densitytime.dataopts.cdata = 'density';
+  figures_proc.densitytime.plotopts.sdata = markerSize;
+  figures_proc.densitytime.plotopts.logscale = false;
+  figures_proc.densitytime.plotopts.xlabel = setfield(default_label, 'String', 'time');
+  figures_proc.densitytime.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
+  figures_proc.densitytime.plotopts.clabel = setfield(default_label, 'String', 'density (kg m-3)');
+  figures_proc.densitytime.plotopts.title = setfield(default_title, 'String', 'In situ density (from raw salinity)');
+  figures_proc.densitytime.plotopts.dateticks = 'x';
+  figures_proc.densitytime.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
+  figures_proc.densitytime.plotopts.figprops = default_figure;
+  figures_proc.densitytime.prntopts = default_prntopts;
+  figures_proc.densitytime.prntopts.filename = 'density_time';
+  figures_proc.densitytime.prntopts.title = 'Density section';
+  figures_proc.densitytime.prntopts.comment = 'Temporal cross section of in situ derived density from salinity without corrections.';
 
   figures_proc.density_corrected_thermal = struct();
   figures_proc.density_corrected_thermal.plotfunc = @plotTransectVerticalSection;
   figures_proc.density_corrected_thermal.dataopts.xdata = 'distance_over_ground';
   figures_proc.density_corrected_thermal.dataopts.ydata = {'depth_ctd' 'depth'};
   figures_proc.density_corrected_thermal.dataopts.cdata = 'density_corrected_thermal';
-  figures_proc.density_corrected_thermal.plotopts.sdata = 2;
+  figures_proc.density_corrected_thermal.plotopts.sdata = markerSize;
   figures_proc.density_corrected_thermal.plotopts.logscale = false;
   figures_proc.density_corrected_thermal.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.density_corrected_thermal.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -222,7 +301,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.chlorophyll.dataopts.xdata = 'distance_over_ground';
   figures_proc.chlorophyll.dataopts.ydata = {'depth' 'depth_ctd'};
   figures_proc.chlorophyll.dataopts.cdata = 'chlorophyll';
-  figures_proc.chlorophyll.plotopts.sdata = 2;
+  figures_proc.chlorophyll.plotopts.sdata = markerSize;
   figures_proc.chlorophyll.plotopts.logscale = true;
   figures_proc.chlorophyll.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.chlorophyll.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -240,7 +319,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.turbidity.dataopts.xdata = 'distance_over_ground';
   figures_proc.turbidity.dataopts.ydata = {'depth' 'depth_ctd'};
   figures_proc.turbidity.dataopts.cdata = 'turbidity';
-  figures_proc.turbidity.plotopts.sdata = 2;
+  figures_proc.turbidity.plotopts.sdata = markerSize;
   figures_proc.turbidity.plotopts.logscale = true;
   figures_proc.turbidity.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.turbidity.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -258,7 +337,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.cdom.dataopts.xdata = 'distance_over_ground';
   figures_proc.cdom.dataopts.ydata = {'depth' 'depth_ctd'};
   figures_proc.cdom.dataopts.cdata = 'cdom';
-  figures_proc.cdom.plotopts.sdata = 2;
+  figures_proc.cdom.plotopts.sdata = markerSize;
   figures_proc.cdom.plotopts.logscale = false;
   figures_proc.cdom.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.cdom.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -276,7 +355,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.oxygen_concentration.dataopts.xdata = 'distance_over_ground';
   figures_proc.oxygen_concentration.dataopts.ydata = {'depth' 'depth_ctd'};
   figures_proc.oxygen_concentration.dataopts.cdata = 'oxygen_concentration';
-  figures_proc.oxygen_concentration.plotopts.sdata = 2;
+  figures_proc.oxygen_concentration.plotopts.sdata = markerSize;
   figures_proc.oxygen_concentration.plotopts.logscale = false;
   figures_proc.oxygen_concentration.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.oxygen_concentration.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');
@@ -294,7 +373,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.oxygen_saturation.dataopts.xdata = 'distance_over_ground';
   figures_proc.oxygen_saturation.dataopts.ydata = {'depth' 'depth_ctd'};
   figures_proc.oxygen_saturation.dataopts.cdata = 'oxygen_saturation';
-  figures_proc.oxygen_saturation.plotopts.sdata = 2;
+  figures_proc.oxygen_saturation.plotopts.sdata = markerSize;
   figures_proc.oxygen_saturation.plotopts.logscale = false;
   figures_proc.oxygen_saturation.plotopts.xlabel = setfield(default_label, 'String', 'distance (km)');
   figures_proc.oxygen_saturation.plotopts.ylabel = setfield(default_label, 'String', 'depth (m)');

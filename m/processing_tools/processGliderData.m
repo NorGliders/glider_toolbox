@@ -503,6 +503,14 @@ function [data_proc, meta_proc] = processGliderData(data_pre, meta_pre, varargin
     meta_proc.time.filling = 'linear';
   end
   
+  % Last values is NaN - FE 10.09.2022
+  if isnan(data_proc.time(end))
+      fields = fieldnames(data_proc);
+      for ind = 1:numel(fields)    
+          data_proc.(fields{ind}) = data_proc.(fields{ind})(1:end-1);
+      end
+  end
+  
   
   %% Fill missing position readings, if needed.
   % Use linear interpolation of valid coordinate readings.

@@ -191,6 +191,11 @@ function [hfig, haxs, hcba, hsct] = plotTransectVerticalSection(varargin)
   if (~isempty(options.sdata))
     valid = valid & ~isnan(options.sdata);
   end
+
+  % Is time
+  if any(ismember('xyz', options.dateticks))
+      options.xdata = ut2mt(options.xdata);
+  end
   
   
   %% Set properties of plot elements.

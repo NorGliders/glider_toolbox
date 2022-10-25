@@ -1,9 +1,9 @@
-function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varargin)
+function [xbds, logs, xbds_unprocessed, logs_unprocessed] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varargin)
 % rsyncDockserverFiles  Sync entire glider directory using rsync
 % Based on GETDOCKSERVERFILES
 %
 %  Syntax:
-%    [XBDS, LOGS] = GETDOCKSERVERFILES(DOCKSERVER, GLIDER, XBD_DIR, LOG_DIR)
+%    [XBDS, LOGS, xbds_unprocessed, logs_unprocessed]  = GETDOCKSERVERFILES(DOCKSERVER, GLIDER, XBD_DIR, LOG_DIR)
 %    [XBDS, LOGS] = GETDOCKSERVERFILES(DOCKSERVER, GLIDER, XBD_DIR, LOG_DIR, OPTIONS)
 %    [XBDS, LOGS] = GETDOCKSERVERFILES(DOCKSERVER, GLIDER, XBD_DIR, LOG_DIR, OPT1, VAL1, ...)
 %
@@ -148,9 +148,9 @@ function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varar
       '^.*-(\d{4})-(\d{3})-\d+-\d+\.[smdtne]bd$','tokens','once'))...
       * [1 0 0; 0 0 1] + [0 0 1]));
   options.log2date        = @(f)(datenum(str2double(regexp(f.name,...
-      '^.*_.*_(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})\.log$', ...
-                                   'tokens','once'))));
-                             
+      '^\w+_\d{8}T\d{6}_(modem|network|freewave)_(net|tty_dgrp_pt)_\d{1}\.log$', ...
+                                   'tokens','once'))));  % '^.*_.*_(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})\.log$'
+                        
   
   %% Parse optional arguments.
   % Get option key-value pairs in any accepted call signature.
@@ -194,11 +194,12 @@ function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varar
   
   
   %% Rsync between dockserver and local
-  % rsync -rav --exclude 'to-*' --dry-run felliott@sfmc.webbresearch.com://var/opt/sfmc-dockserver/stations/bergen/gliders/durin/ ~/glider/from-sfmc/durin
+  % rsync -rav --include="*.*d" --exclude="*.*" felliott@sfmc.webbresearch.com://var/opt/sfmc-dockserver/stations/bergen/gliders/durin/ ~/glider/from-sfmc/odin
   % For testing use --dry-run
   % from-glider binary files to  local binary dir
+  start_files = how_many_files([local_xbd_dir '/*.*d']);
   disp('Syncing binary files...');
-  command = ['rsync -rav --include="*.*bd" --exclude="*.*" ' dockserver.user '@' dockserver.host ':' remote_xbd_dir '/ ' local_xbd_dir];
+  command = ['rsync -rav --include="*.*d" --exclude="*.*" ' dockserver.user '@' dockserver.host ':' remote_xbd_dir '/ ' local_xbd_dir];
   [status,result] = system(command);
   if ~status
       loc = strfind(result, 'sent');
@@ -207,10 +208,14 @@ function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varar
   else
       disp(result)
   end
+  end_files = how_many_files([local_xbd_dir '/*.*d']);
+  disp(['New files downloaded: ' num2str(end_files - start_files)])
+  
   
   % sync all other files from from-glider
+  start_files = how_many_files(local_glider_dir);
   disp('Syncing other files from glider...');
-  command = ['rsync -rav --exclude="*.*bd" ' dockserver.user '@' dockserver.host ':' remote_xbd_dir ' ' local_glider_dir];
+  command = ['rsync -rav --exclude="*.*d" ' dockserver.user '@' dockserver.host ':' remote_xbd_dir ' ' local_glider_dir];
   [status,result] = system(command);
   if ~status
       loc = strfind(result, 'sent');
@@ -219,10 +224,14 @@ function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varar
   else
       disp(result)
   end
+  end_files = how_many_files(local_glider_dir);
+  disp(['New files downloaded: ' num2str(end_files - start_files)])
+  
   
   % Sync logs, archive, and gliderstate.xml
-  disp('Syncing logs and to-glider files...');
-  command = ['rsync -rav --exclude="to-*" --exclude="from-*" --exclude="conf*" ' dockserver.user '@' dockserver.host ':' remote_glider_dir '/ ' local_glider_dir];
+  start_files = how_many_files(local_log_dir);
+  disp('Syncing logs files...');
+  command = ['rsync -rav --exclude="to-*" --exclude="from-*" --exclude="configuration" --exclude=".archived-deployments" ' dockserver.user '@' dockserver.host ':' remote_glider_dir '/ ' local_glider_dir];
   [status,result] = system(command);
   if ~status
       loc = strfind(result, 'sent');
@@ -231,56 +240,89 @@ function [xbds, logs] = rsyncDockserverFiles(dockserver, xbd_dir, log_dir, varar
   else
       disp(result)
   end
-  
+  end_files = how_many_files(local_log_dir);
+  disp(['New files downloaded: ' num2str(end_files - start_files)])
+
   
   %% Collect some parameters given in options.
   xbd_name      = options.xbd;
   log_name      = options.log;
-%   xbd_newfunc   = [];
-%   log_newfunc   = [];
-%   updatefunc    = @(l,r)(l.bytes < r.bytes);
-%   if isfinite(options.start) || isfinite(options.final)
-%     xbd_newfunc = @(r)(options.start <= options.xbd2date(r) && ...
-%                        options.xbd2date(r) <= options.final);
-%     log_newfunc = @(r)(options.start <= options.log2date(r) && ...
-%                        options.log2date(r) <= options.final);
-%   end
+  xbd_newfunc   = [];
+  log_newfunc   = [];
+  updatefunc    = @(l,r)(l.bytes < r.bytes);
+  if isfinite(options.start) || isfinite(options.final)
+    xbd_newfunc = @(r)(options.start <= options.xbd2date(r) && ...
+                       options.xbd2date(r) <= options.final);
+    log_newfunc = @(r)(options.start <= log2date(r) && ...
+                       log2date(r) <= options.final);
+  end
+
   
   %% List of unprocessed xbd files
-  % xbd_name  = '^(\w+-\d{4}-\d+-\d+-\d+)\.([smdtne]bd)$'
   xbd_dir_struct = dir(local_xbd_dir);
   xbd_dir_cell   = {xbd_dir_struct.name}';
   xbd_dir_cell   = regexp(xbd_dir_cell, xbd_name, 'match');
   is_xbd_file    = cellfun('isempty',xbd_dir_cell);
   xbd_dir_files  = xbd_dir_cell(~is_xbd_file); 
+  xbds           = [xbd_dir_files{:}]';
   if isempty(options.processed_xbds)
-    xbds = xbd_dir_files;
+      xbds_unprocessed = xbds;
   else
-      [loc] = ismember(xbd_dir_files, options.processed_xbds);
-      xbds = xbd_dir_files(~loc);
+      existing_xbds = options.processed_xbds.Properties.RowNames;
+      [loc] = ismember(xbds, existing_xbds);
+      xbds_unprocessed = xbds(~loc);
   end
-  xbds = [xbds{:}]';
   xbds = strcat([local_xbd_dir '/'],xbds);
+  xbds_unprocessed = strcat([local_xbd_dir '/'],xbds_unprocessed);
   
   %% List of unprocessed log files
   % log_name = '^\w+_(modem|network|freewave)_\d{8}T\d{6}\.log$'
   % network: durin_20210123T115727_network_net_0.log
   % modem:   durin_20210119T233024_modem_tty_dgrp_pt_0.log
-  % log_name_new  = '^\w+_\d{8}T\d{6}_\w(modem|network|freewave)_\w(net|tty_dgrp_pt)_\d{1}\.log$'
+  %log_name_new  = '^\w+_\d{8}T\d{6}_\w(modem|network|freewave)_\w(net|tty_dgrp_pt)_\d{1}\.log$'
   log_name = '^\w+_*\.log$';
   log_dir_struct = dir(local_log_dir);
   log_dir_cell   = {log_dir_struct.name}';
   log_dir_cell   = regexp(log_dir_cell, log_name, 'match');
   is_log_file    = cellfun('isempty',log_dir_cell);
   log_dir_files  = log_dir_cell(~is_log_file);
-  if isempty(options.processed_logs)
-      logs = log_dir_files;
-  else
-      [loc] = ismember(log_dir_files, options.processed_logs);
-      logs= log_dir_files(~loc);
+  logs           = [log_dir_files{:}]';
+  
+  % restrict to start stop times
+  % Identify log files created after startTime
+  n = numel(logs);
+  log_files_time = zeros(n,1);
+  for i = 1:n
+      dName      = logs{i};
+      loc        = strfind(dName,'_');
+      loc        = loc(1);
+      dateText   = dName(loc+1:loc+15);
+      log_files_time(i) = datenum(dateText,'yyyymmddTHHMMSS');
   end
-  logs = [logs{:}]';
+  ind = find(log_files_time>options.start & log_files_time<options.final);
+  logs = logs(ind);
+  
+  if isempty(options.processed_logs)
+      logs_unprocessed = logs;
+  else
+      existing_logs = options.processed_logs.Properties.RowNames;
+      [loc] = ismember(logs, existing_logs);
+      logs_unprocessed = logs(~loc);
+  end
   logs = strcat([local_log_dir '/'],logs);
+  logs_unprocessed = strcat([local_log_dir '/'],logs_unprocessed);
+  
+  
 
+end
+
+function nofiles = how_many_files(mydir)
+    % How many files in directory 'mydir'
+    nofiles = [];
+    cmd = ['ls ' mydir ' | wc -l'];
+    [stat,res] = system(cmd);
+    if ~stat
+        nofiles = str2num(strtrim(res));
+    end
 end
 
