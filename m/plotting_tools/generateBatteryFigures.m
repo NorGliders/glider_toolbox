@@ -236,6 +236,8 @@ apc_rem       = aremaining/(aduration+aremaining) * 100;
 
 % Plot - Voltage
 fh1 = figure('Units', 'Normalized', 'OuterPosition', [0 0 0.4 .8], 'Name', 'Battery diagnostics - Voltage', 'Tag', 'Battery_diagnostics_voltage', 'NumberTitle', 'Off', 'color', 'white');
+% fh1 = figure('Units', 'centimeter', 'Name', 'Battery diagnostics - Voltage', 'Tag', 'Battery_diagnostics_voltage', 'NumberTitle', 'Off', 'color', 'white');
+
 subplot(2,1,1)
 plot(Tmeas,Vmeas,'col',col(1,:),'Marker','o')
 hold on

@@ -122,6 +122,13 @@ try
             
             % Write sensor info into structure
             for i=1:length(sensor_name)
+                % Convert current waypoints to decimal degrees
+                if strcmp(sensor_name{i},'c_wpt_lat')
+                    sensor_val(i,1) = nmea2deg(sensor_val(i,1));
+                end
+                if strcmp(sensor_name{i},'c_wpt_lon')
+                    sensor_val(i,1) = nmea2deg(sensor_val(i,1));
+                end
                 surf_data.(sensor_name{i,1}) = sensor_val(i,1);
             end
             

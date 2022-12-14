@@ -38,10 +38,10 @@ function [glider_toolbox_dir] = configGliderToolboxPath()
   % addpath(genpath(glider_toolbox_dir));  FE
   
   glider_toolbox_dir = fullfile(glider_toolbox_dir, '..');
-  curDir = pwd();
+  current_dir = pwd();
   cd(glider_toolbox_dir);
   glider_toolbox_dir = pwd();
-  cd(curDir);
+  cd(current_dir);
   addpath(genpath(glider_toolbox_dir)); 
   
 end

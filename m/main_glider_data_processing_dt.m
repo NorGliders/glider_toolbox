@@ -166,11 +166,17 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-% Configuration and deployment files
+%% Debug
+debugg = false;
+if debugg
+    dbstop if error
+end
+
+%% Configuration and deployment files
 configuration_file = 'configMainDT.txt';
 deployment_file    = 'deploymentDT.txt';
 
-% required parameters of deployment structure
+% required parameters of deployment structure --put more usefull stuff in here
 required_deployment_strparam = {'deployment_name', 'glider_name', ...
                        'glider_serial', 'glider_model'};
 required_deployment_numparam = {'deployment_id', ...
@@ -186,30 +192,48 @@ deployment_file = fullfile(glider_toolbox_dir, 'config', deployment_file);
 
 %% Configure deployment data and binary paths.
 % This is necessary since we changed the configuration setup
-config.paths_public.netcdf_l0   = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l0);
-config.paths_public.netcdf_l1   = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l1);
-config.paths_public.netcdf_l2   = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l2);
-config.paths_public.figure_dir  = fullfile(config.public_paths.base_html_dir,config.public_paths.figure_dir);
-config.paths_public.figure_url  = fullfile(config.public_paths.base_url,config.public_paths.figure_dir);
-config.paths_public.figure_info = fullfile(config.public_paths.base_html_dir,config.public_paths.figure_info);
+config.paths_public.netcdf_l0          = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l0);
+config.paths_public.netcdf_l1          = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l1);
+config.paths_public.netcdf_l2          = fullfile(config.public_paths.base_dir,config.public_paths.netcdf_l2);
+config.paths_public.figure_dir         = fullfile(config.public_paths.base_html_dir,config.public_paths.figure_dir);
+config.paths_public.figure_url         = fullfile(config.public_paths.base_url,config.public_paths.figure_dir);
+config.paths_public.figure_info        = fullfile(config.public_paths.base_html_dir,config.public_paths.figure_info);
 
-config.paths_local.binary_path    = fullfile(config.local_paths.base_dir,config.local_paths.binary_path);
-config.paths_local.cache_path     = fullfile(config.local_paths.base_dir,config.local_paths.cache_path);
-config.paths_local.log_path       = fullfile(config.local_paths.base_dir,config.local_paths.log_path);
-config.paths_local.ascii_path     = fullfile(config.local_paths.base_dir,config.local_paths.ascii_path);
-config.paths_local.figure_path    = fullfile(config.local_paths.base_dir,config.local_paths.figure_path);
-config.paths_local.netcdf_l0      = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l0);
-config.paths_local.netcdf_l1      = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l1);
-config.paths_local.netcdf_l2      = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l2);
-config.paths_local.processing_log = fullfile(config.local_paths.base_dir,config.local_paths.processing_log);
-config.paths_local.config_record  = fullfile(config.local_paths.base_dir,config.local_paths.config_record);
+config.paths_local.root_dir             = fullfile(config.local_paths.root_dir);
+config.paths_local.base_dir             = fullfile(config.local_paths.base_dir);
+config.paths_local.active_gliders_json  = fullfile(config.local_paths.active_gliders_json);
+config.paths_local.binary_path          = fullfile(config.local_paths.base_dir,config.local_paths.binary_path);
+config.paths_local.cache_path           = fullfile(config.local_paths.base_dir,config.local_paths.cache_path);
+config.paths_local.log_path             = fullfile(config.local_paths.base_dir,config.local_paths.log_path);
+config.paths_local.ascii_path           = fullfile(config.local_paths.base_dir,config.local_paths.ascii_path);
+%config.paths_local.dat_path             = fullfile(config.local_paths.base_dir,config.local_paths.dat_path);
+config.paths_local.figure_path          = fullfile(config.local_paths.base_dir,config.local_paths.figure_path);
+%config.paths_local.figure_surf_path     = fullfile(config.local_paths.base_dir,config.local_paths.figure_surf_path);
+%config.paths_local.segment_path         = fullfile(config.local_paths.base_dir,config.local_paths.segment_path);
+config.paths_local.netcdf_l0            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l0);
+config.paths_local.netcdf_l1            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l1);
+config.paths_local.netcdf_l2            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l2);
+config.paths_local.processing_log       = fullfile(config.local_paths.base_dir,config.local_paths.processing_log);
+config.paths_local.config_record        = fullfile(config.local_paths.base_dir,config.local_paths.config_record);
+%config.paths_local.processed_xbds_file  = fullfile(config.local_paths.base_dir,config.local_paths.processed_xbds_file);
+%config.paths_local.processed_logs_file  = fullfile(config.local_paths.base_dir,config.local_paths.processed_logs_file);
 
-config.wrcprogs.dbd2asc             = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dbd2asc);
-config.wrcprogs.dba_merge           = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_merge);
-config.wrcprogs.dba_sensor_filter   = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_sensor_filter);
-config.wrcprogs.dba_time_filter     = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_time_filter);
-config.wrcprogs.dba2_orig_matlab    = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba2_orig_matlab);
-config.wrcprogs.rename_dbd_files    = fullfile(config.wrcprogs.base_dir, config.wrcprogs.rename_dbd_files);
+config.paths_local.ego_file             = fullfile(config.local_paths.base_dir,config.local_paths.ego_file);
+config.paths_local.ego_sensor_ct        = fullfile(config.local_paths.base_dir,config.local_paths.ego_sensor_ct); % TODO! add ${CTD_SN}
+config.paths_local.ego_sensor_do        = fullfile(config.local_paths.base_dir,config.local_paths.ego_sensor_do); % edit add ${CTD_SN}
+config.paths_local.ego_sensor_eco       = fullfile(config.local_paths.base_dir,config.local_paths.ego_sensor_eco); % edit add ${CTD_SN}
+
+config.wrcprogs.dbd2asc                 = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dbd2asc);
+config.wrcprogs.dba_merge               = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_merge);
+config.wrcprogs.dba_sensor_filter       = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_sensor_filter);
+config.wrcprogs.dba_time_filter         = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba_time_filter);
+config.wrcprogs.dba2_orig_matlab        = fullfile(config.wrcprogs.base_dir, config.wrcprogs.dba2_orig_matlab);
+config.wrcprogs.rename_dbd_files        = fullfile(config.wrcprogs.base_dir, config.wrcprogs.rename_dbd_files);
+
+%% Testing
+command = ['echo "main_rt starttime: ' datestr(now) '" >> ' fullfile(config.paths_local.root_dir,'.logs','main_rt.log') ];
+[status,result] = system(command);
+
 
 %% Configure data base deployment information source.
 if ~isfield(config.db_access, 'deployment_ids')
@@ -222,47 +246,51 @@ end
 %% Get list of deployments to process from database.
 % If the active parameter is set and set to 0 then the deployments will be
 % gathered from the deployment file under config
-user_db_access = 1;
 deployment_list = '';
 if ~isempty(config.db_access) && isfield(config.db_access, 'active')
     user_db_access = config.db_access.active;
 end
-if user_db_access  
-    disp('Querying information of glider deployments...');
+disp('Retrieving glider deployments...');
+if user_db_access
+    disp(['Querying database: ' config.db_access.server '...']);
     deployment_list = getDeploymentInfoDB( ...
-      config.db_query, config.db_access.name, ...
-      'user', config.db_access.user, 'pass', config.db_access.pass, ...
-      'server', config.db_access.server, 'driver', config.db_access.driver, ...
-      'fields', config.db_fields);
+        config.db_query, config.db_access.name, ...
+        'user', config.db_access.user, 'pass', config.db_access.pass, ...
+        'server', config.db_access.server, 'driver', config.db_access.driver, ...
+        'fields', config.db_fields);
 else
-    disp(['Reading information of glider deployments from ' deployment_file '...']);
-    try
-        read_deployment = readConfigFile(deployment_file);
-        deployment_list = read_deployment.deployment_list;
+%         disp(['Reading from file: ' deployment_file '...']);
+%         try
+%             read_deployment = readConfigFile(deployment_file);
+%             deployment_list = read_deployment.deployment_list;
+%             
+%             % Check/modify format of deployment_list
+%             for i=1:numel(required_deployment_strparam)
+%                 fieldname = required_deployment_strparam(i);
+%                 if ~isfield( deployment_list, fieldname{1})
+%                     disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
+%                     return;
+%                 end
+%             end
+%             for i=1:numel(required_deployment_numparam)
+%                 fieldname = required_deployment_numparam(i);
+%                 if ~isfield( deployment_list, fieldname{1})
+%                     disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
+%                     return;
+%                 else
+%                     for j=1:numel(deployment_list)
+%                         deployment_list(j).(fieldname{1}) = str2num(deployment_list(j).(fieldname{1}));
+%                     end
+%                 end
+%             end
+%         catch exception
+%             disp(['Error reading deployment file ' deployment_file]);
+%             disp(getReport(exception, 'extended'));
+%         end
         
-        %Check/modify format of deployment_list 
-        for i=1:numel(required_deployment_strparam)
-           fieldname = required_deployment_strparam(i);
-           if ~isfield( deployment_list, fieldname{1})
-               disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
-               return;
-           end
-        end
-        for i=1:numel(required_deployment_numparam)
-           fieldname = required_deployment_numparam(i);
-           if ~isfield( deployment_list, fieldname{1})
-               disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
-               return;
-           else
-               for j=1:numel(deployment_list)  
-                   deployment_list(j).(fieldname{1}) = str2num(deployment_list(j).(fieldname{1}));
-               end
-           end
-        end
-    catch exception
-        disp(['Error reading deployment file ' deployment_file]);
-        disp(getReport(exception, 'extended'));
-    end    
+        disp(['Reading from xlxs spreadsheet: ' config.db_access.server '...']);
+        % TODO: ENABLE MULtiselect
+        deployment_list = getDeploymentInfoXLS(config.db_access.server);
 end
 
 if isempty(deployment_list)
@@ -310,36 +338,44 @@ for deployment_idx = 1:numel(deployment_list)
   glider_serial = deployment.glider_serial;
   glider_type = '';
   if ~isempty(regexpi(glider_model, '.*slocum.*g1.*', 'match', 'once'))
-    glider_type = 'slocum_g1';
+      glider_type = 'slocum_g1';
   elseif ~isempty(regexpi(glider_model, '.*slocum.*g2.*', 'match', 'once'))
-    glider_type = 'slocum_g2';
+      glider_type = 'slocum_g2';
+  elseif ~isempty(regexpi(glider_model, '.*slocum.*g3.*', 'match', 'once'))
+      glider_type = 'slocum_g3';
   elseif ~isempty(regexpi(glider_model, '.*seaglider.*', 'match', 'once'))
     glider_type = 'seaglider';
   elseif ~isempty(regexpi(glider_model, '.*seaexplorer.*', 'match', 'once'))
       glider_type = 'seaexplorer';
   end
   % Options depending on the type of glider:
+  % TO DO ADD RENAME AND UNCOMPRESS HERE!!!
   switch glider_type
-    case 'slocum_g1'
-      file_options = config.file_options_slocum;
-      preprocessing_options = config.preprocessing_options_slocum;
-      processing_options = config.processing_options_slocum_g1;
-      netcdf_l0_options = config.output_netcdf_l0_slocum;
-    case 'slocum_g2'
-      file_options = config.file_options_slocum;
-      preprocessing_options = config.preprocessing_options_slocum;
-      processing_options = config.processing_options_slocum_g2;
-      netcdf_l0_options = config.output_netcdf_l0_slocum;
-    case 'seaglider'
-      file_options = config.file_options_seaglider;
-      preprocessing_options = config.preprocessing_options_seaglider;
-      processing_options = config.processing_options_seaglider;
-      netcdf_l0_options = config.output_netcdf_l0_seaglider;
-    case 'seaexplorer' 
-      file_options = config.file_options_seaexplorer;
-      preprocessing_options = config.preprocessing_options_seaexplorer;
-      processing_options = config.processing_options_seaexplorer;
-      netcdf_l0_options = config.output_netcdf_l0_seaexplorer;
+      case 'slocum_g1'
+          file_options = config.file_options_slocum;
+          preprocessing_options = config.preprocessing_options_slocum;
+          processing_options = config.processing_options_slocum_g1;
+          netcdf_l0_options = config.output_netcdf_l0_slocum;
+      case 'slocum_g2'
+          file_options = config.file_options_slocum;
+          preprocessing_options = config.preprocessing_options_slocum;
+          processing_options = config.processing_options_slocum_g2;
+          netcdf_l0_options = config.output_netcdf_l0_slocum;
+      case 'slocum_g3'
+          file_options = config.file_options_slocum;
+          preprocessing_options = config.preprocessing_options_slocum;
+          processing_options = config.processing_options_slocum_g2;
+          netcdf_l0_options = config.output_netcdf_l0_slocum;
+      case 'seaglider'
+          file_options = config.file_options_seaglider;
+          preprocessing_options = config.preprocessing_options_seaglider;
+          processing_options = config.processing_options_seaglider;
+          netcdf_l0_options = config.output_netcdf_l0_seaglider;
+      case 'seaexplorer'
+          file_options = config.file_options_seaexplorer;
+          preprocessing_options = config.preprocessing_options_seaexplorer;
+          processing_options = config.processing_options_seaexplorer;
+          netcdf_l0_options = config.output_netcdf_l0_seaexplorer;
   end
   if isfield(deployment, 'calibrations')
     preprocessing_options.calibration_parameter_list = deployment.calibrations;
@@ -383,36 +419,12 @@ for deployment_idx = 1:numel(deployment_list)
   %% Report toolbox version:    
   disp(['Toolbox version: ' glider_toolbox_ver]);
   
-  %% Copy configuration file to data folder
-  config_record_dir = fileparts(config_record);
-  [status, attrout] = fileattrib(config_record_dir);
-  if ~status
-    [status, message] = mkdir(config_record_dir);
-  elseif ~attrout.directory
-    status = false;
-    message = 'not a directory';
-  end
-  if status
-    [success, message] = copyfile(fconfig, config_record);
-    if success
-      disp(['Configuration file succesfully copied: ' config_record '.']);
-    else
-      disp(['Error copying configuration file to local data ' ...
-            config_record ': ' fconfig '.']);
-      disp(message);
-    end
-  else
-    disp(['Error creating output directory ' config_record_dir ':']);
-    disp(message);
-  end
    
-
-
   %% Report deployment information.
   disp('Deployment information:')
   disp(['  Glider name          : ' glider_name]);
   disp(['  Glider model         : ' glider_model]);
-  disp(['  Glider serial        : ' glider_serial]);
+  disp(['  Glider serial        : ' num2str(glider_serial)]);
   disp(['  Deployment identifier: ' num2str(deployment_id)]);
   disp(['  Deployment name      : ' deployment_name]);
   disp(['  Deployment start     : ' datestr(deployment_start)]);
@@ -432,7 +444,7 @@ for deployment_idx = 1:numel(deployment_list)
   % Give a second try to failing files, because they might have failed due to 
   % a missing cache file generated later.
   switch glider_type
-    case {'slocum_g1' 'slocum_g2'}
+    case {'slocum_g1' 'slocum_g2' 'slocum_g3'}
       if file_options.format_conversion
         % Look for xbds in binary directory.
         disp('Converting binary data files to ascii format...');
@@ -484,7 +496,7 @@ for deployment_idx = 1:numel(deployment_list)
   end
   try
     switch glider_type
-      case {'slocum_g1' 'slocum_g2'}
+      case {'slocum_g1' 'slocum_g2' 'slocum_g3'}
         [meta_raw, data_raw] = ...
           loadSlocumData(ascii_dir, ...
                          file_options.dba_name_pattern_nav, ...
@@ -538,7 +550,7 @@ for deployment_idx = 1:numel(deployment_list)
     disp('Generating NetCDF L0 output...');
     try
       switch glider_type
-        case {'slocum_g1' 'slocum_g2'}
+        case {'slocum_g1' 'slocum_g2' 'slocum_g3'}
           outputs.netcdf_l0 = generateOutputNetCDF( ...
             netcdf_l0_file, data_raw, meta_raw, deployment, ...
             netcdf_l0_options.variables, ...

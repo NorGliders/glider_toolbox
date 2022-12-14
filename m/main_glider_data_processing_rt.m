@@ -189,8 +189,10 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 %% Debug
-%dbstop if error
-%debug = true;
+debugg = false;
+if debugg
+    dbstop if error
+end
 
 
 %% Configuration and deployment files
@@ -210,7 +212,6 @@ glider_toolbox_ver = configGliderToolboxVersion();
 
 fconfig = fullfile(glider_toolbox_dir, 'config', configuration_file);
 config = setupConfiguration(glider_toolbox_dir, 'fconfig', fconfig);
-
 deployment_file = fullfile(glider_toolbox_dir, 'config', deployment_file);
 
 
@@ -316,6 +317,9 @@ if isempty(deployment_list)
 else
     disp(['Active deployments found: ' num2str(height(deployment_list))]);
 end
+
+%% Update Active_NorGliders.kml
+update_active_norgliders_kml(config.paths_local.root_dir, {deployment_list.deployment_name})
 
 
 %% Process active deployments.
@@ -622,7 +626,7 @@ for deployment_idx = 1:numel(deployment_list)
             end
 
             % Append new files to table
-            if numel(new_logs)
+            if numel(new_logs)  %% SET TRUE TO GENERATE NEW JSON FILE!!!
                 processed_logs = updateLogTable(processed_logs, new_logs, glider_name);
                 % Save copy to project dir
                 writetable(processed_logs, processed_logs_file,'WriteRowNames',true);
@@ -711,43 +715,6 @@ for deployment_idx = 1:numel(deployment_list)
         otherwise
     end
    
-
-    
-%     if 1 % numel(new_logs)
-%         % Update active_norgliders.json
-%         updateActiveGlidersJson(processed_logs, segment_list, config.paths_local.active_gliders_json, ego_file, glider_name);
-%     end
-    
-    
-%     % Write log JSON summary
-%     if numel(new_logs) || debug
-%         log_files_list = struct();
-%         log_files_all = processed_logs(processed_logs.plot_file==1,:);
-%         log_files = [unique(segments_all.segment(:)) unique(segments_all.segment(:))];
-%         for ind = 1:size(segments,1)
-%             this_seg = segments{ind,2};
-%             this_seg = strrep(this_seg,'-','_');
-%             segments{ind,1} = this_seg;
-%             loc = strfind(this_seg,'_');
-%             start_str = this_seg(1:loc(end));
-%             end_str = sprintf( '%03s',this_seg(loc(end)+1:end));
-%             segments{ind,2} = [start_str end_str];
-%         end
-%         segments_sorted = sort(segments);
-%         
-%         % Put in order
-%         for ind = 1:size(segments,1)
-%             this_seg = segments{ind};
-%             this_seg_field = strrep(this_seg,'-','_'); %HACK CHANGE FE
-%             content = dir([fullfile(segment_dir,this_seg_field)]);
-%             content_name = {content.name}';
-%             content_isdir = ~[content.isdir]';
-%             plot_list = content_name(content_isdir);
-%             segment_list.(this_seg_field) = plot_list;
-%         end
-%         savejson(segment_list,fullfile(local_base_dir,'segments.json'));
-%     end
-%         
     
     %% Convert binary glider files to ascii human readable format. % MAY need edit to check ALL bin files have been decoded rather than just new_files
     % For Seaglider, do nothing but join the lists of new eng and log files.
@@ -830,6 +797,7 @@ for deployment_idx = 1:numel(deployment_list)
         case {'seaexplorer'}
             warning('glider_toolbox:main_glider_data_processing_dt:SeaExplorerFilesRT', ...
                 'Faking newly retrieved files with contents of ascii directory');
+            
             new_files = dir(ascii_dir);
             new_files = {new_files(~[new_files.isdir]).name};
         otherwise
@@ -1040,8 +1008,8 @@ for deployment_idx = 1:numel(deployment_list)
             disp(ME)
         end
 
-        % Create kml layer
-        % srfStruct_to_kml(cfg);
+        % Create kml layer based on the active gliders json
+        srfStruct_to_kml(processed_logs_file, ego_file);
         % write_niwa_position_feed_txt(cfg);
     end
 
