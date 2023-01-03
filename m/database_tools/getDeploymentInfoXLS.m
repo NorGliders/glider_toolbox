@@ -1,4 +1,4 @@
-function data = getDeploymentInfoXLS(spreadsheet)
+function [data, metadata] = getDeploymentInfoXLS(spreadsheet)
 % getDeploymentInfoXLS  Get deployment information from norwegian missions spreadsheet.
 %
 %  Syntax:
@@ -100,6 +100,7 @@ end
 
 %% Output structure
 try
+    metadata = table2struct(T(selection,:));
     deployment_id = T{selection,'MISSIONNUMBER'}; 
     deployment_name = char(T{selection,'INTERNALMISSIONID'}); 
     deployment_site = char(T{selection,'SITE'}); 

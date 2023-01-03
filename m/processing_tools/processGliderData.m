@@ -580,7 +580,7 @@ function [data_proc, meta_proc] = processGliderData(data_pre, meta_pre, varargin
   % Waypoint coordinates are assumed constant until next valid waypoint 
   % coordinate reading.
   if options.waypoint_filling ...
-      && all(isfield(data_proc, {'waypoint_latitude' 'waypoint_longitude'}))
+      && all(isfield(data_proc, {'waypoint_latitude' 'waypoint_longitude'}))        
     fprintf('Filling missing commanded waypoint readings...\n');
     data_proc.waypoint_latitude = ...
       fillInvalidValues(data_proc.waypoint_latitude, 'prev');

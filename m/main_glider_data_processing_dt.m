@@ -1,5 +1,16 @@
 %MAIN_GLIDER_DATA_PROCESSING_DT  Run delayed time glider processing chain.
 %
+% TO DO: 
+% - how to process longer deployments? remome unneeded sensors from the
+% dbd2asc conversion?
+% - netcdf metadata updates- pull all metadata from deployments spreadsheet
+% - batch processing
+% - JSON file summary
+% - master JSON deployment summary
+% - KML files, kmz master
+% - EGO!!!
+% - 
+%
 %  Description:
 %    This script develops the processing chain for delayed time glider data:
 %      - Check for configured deployments to process in delayed mode.
@@ -166,17 +177,18 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-%% Debug
+%% Debug settings
+first_run = true; % use this to plot all data in folder and then estimate actual start and end date
 debugg = false;
 if debugg
     dbstop if error
 end
-
-%% Configuration and deployment files
+    
+%% Configuration and deployment file
 configuration_file = 'configMainDT.txt';
 deployment_file    = 'deploymentDT.txt';
 
-% required parameters of deployment structure --put more usefull stuff in here
+% required parameters of deployment structure --put more useful stuff in here
 required_deployment_strparam = {'deployment_name', 'glider_name', ...
                        'glider_serial', 'glider_model'};
 required_deployment_numparam = {'deployment_id', ...
@@ -201,22 +213,17 @@ config.paths_public.figure_info        = fullfile(config.public_paths.base_html_
 
 config.paths_local.root_dir             = fullfile(config.local_paths.root_dir);
 config.paths_local.base_dir             = fullfile(config.local_paths.base_dir);
-config.paths_local.active_gliders_json  = fullfile(config.local_paths.active_gliders_json);
 config.paths_local.binary_path          = fullfile(config.local_paths.base_dir,config.local_paths.binary_path);
 config.paths_local.cache_path           = fullfile(config.local_paths.base_dir,config.local_paths.cache_path);
 config.paths_local.log_path             = fullfile(config.local_paths.base_dir,config.local_paths.log_path);
 config.paths_local.ascii_path           = fullfile(config.local_paths.base_dir,config.local_paths.ascii_path);
-%config.paths_local.dat_path             = fullfile(config.local_paths.base_dir,config.local_paths.dat_path);
 config.paths_local.figure_path          = fullfile(config.local_paths.base_dir,config.local_paths.figure_path);
-%config.paths_local.figure_surf_path     = fullfile(config.local_paths.base_dir,config.local_paths.figure_surf_path);
-%config.paths_local.segment_path         = fullfile(config.local_paths.base_dir,config.local_paths.segment_path);
 config.paths_local.netcdf_l0            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l0);
 config.paths_local.netcdf_l1            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l1);
 config.paths_local.netcdf_l2            = fullfile(config.local_paths.base_dir,config.local_paths.netcdf_l2);
 config.paths_local.processing_log       = fullfile(config.local_paths.base_dir,config.local_paths.processing_log);
-config.paths_local.config_record        = fullfile(config.local_paths.base_dir,config.local_paths.config_record);
-%config.paths_local.processed_xbds_file  = fullfile(config.local_paths.base_dir,config.local_paths.processed_xbds_file);
-%config.paths_local.processed_logs_file  = fullfile(config.local_paths.base_dir,config.local_paths.processed_logs_file);
+config.paths_local.deployment_summary   = fullfile(config.local_paths.base_dir,config.local_paths.deployment_summary);
+config.paths_local.all_deployments_summary = fullfile(config.local_paths.all_deployments_summary);
 
 config.paths_local.ego_file             = fullfile(config.local_paths.base_dir,config.local_paths.ego_file);
 config.paths_local.ego_sensor_ct        = fullfile(config.local_paths.base_dir,config.local_paths.ego_sensor_ct); % TODO! add ${CTD_SN}
@@ -290,7 +297,11 @@ else
         
         disp(['Reading from xlxs spreadsheet: ' config.db_access.server '...']);
         % TODO: ENABLE MULtiselect
-        deployment_list = getDeploymentInfoXLS(config.db_access.server);
+        [deployment_list, deployment_table] = getDeploymentInfoXLS(config.db_access.server);
+        if first_run 
+            deployment_list.deployment_start = NaN;
+            deployment_list.deployment_end = NaN;
+        end
 end
 
 if isempty(deployment_list)
@@ -309,7 +320,8 @@ for deployment_idx = 1:numel(deployment_list)
   disp(['Processing deployment ' num2str(deployment_idx) '...']);
   deployment = deployment_list(deployment_idx);
   processing_log = strfstruct(config.paths_local.processing_log, deployment);
-  config_record  = strfstruct(config.paths_local.config_record, deployment);
+  deployment_summary  = strfstruct(config.paths_local.deployment_summary, deployment);
+  all_deployments_summary = fullfile(config.local_paths.all_deployments_summary);
   binary_dir = strfstruct(config.paths_local.binary_path, deployment);
   cache_dir = strfstruct(config.paths_local.cache_path, deployment);
   log_dir = strfstruct(config.paths_local.log_path, deployment);
@@ -422,16 +434,20 @@ for deployment_idx = 1:numel(deployment_list)
    
   %% Report deployment information.
   disp('Deployment information:')
-  disp(['  Glider name          : ' glider_name]);
-  disp(['  Glider model         : ' glider_model]);
-  disp(['  Glider serial        : ' num2str(glider_serial)]);
-  disp(['  Deployment identifier: ' num2str(deployment_id)]);
-  disp(['  Deployment name      : ' deployment_name]);
-  disp(['  Deployment start     : ' datestr(deployment_start)]);
-  if isnan(deployment_end)
-    disp(['  Deployment end       : ' 'undefined']);
+  disp(['  Glider name           : ' glider_name]);
+  disp(['  Glider model          : ' glider_model]);
+  disp(['  Glider serial         : ' num2str(glider_serial)]);
+  disp(['  Deployment identifier : ' num2str(deployment_id)]);
+  disp(['  Deployment name       : ' deployment_name]);
+  if isnan(deployment_start)
+    disp(['  Deployment start      : ' 'undefined']);
   else
-    disp(['  Deployment end       : ' datestr(deployment_end)]);
+    disp(['  Deployment start      : ' datestr(deployment_start)]);
+  end
+  if isnan(deployment_end)
+    disp(['  Deployment end        : ' 'undefined']);
+  else
+    disp(['  Deployment end        : ' datestr(deployment_end)]);
   end
 
 
@@ -543,10 +559,14 @@ for deployment_idx = 1:numel(deployment_list)
     disp(['Files loaded in deployment period: ' num2str(numel(source_files)) '.']);
     deployment.source_files = sprintf('%s\n', source_files{:});
   end
-
+  
+  %% Update NetCDF file attributes
+  %netcdf_l0_options.attributes
+  %dummy = updateNetCDFattributes(netcdf_l0_options.attributes, )
+  
 
   %% Generate L0 NetCDF file (raw/preprocessed data), if needed and possible.
-  if ~isempty(fieldnames(data_raw)) && ~isempty(netcdf_l0_file)
+  if ~isempty(fieldnames(data_raw)) && ~isempty(netcdf_l0_file) && ~first_run
     disp('Generating NetCDF L0 output...');
     try
       switch glider_type
@@ -615,7 +635,9 @@ for deployment_idx = 1:numel(deployment_list)
     end
   end
 
-
+  clear data_raw meta_raw
+  
+  % probably dies here
   %% Process preprocessed glider data.
   if ~isempty(fieldnames(data_preprocessed))
     disp('Processing glider data...');
@@ -628,9 +650,10 @@ for deployment_idx = 1:numel(deployment_list)
     end
   end
 
+  clear data_preprocessed meta_preprocessed
 
   %% Generate L1 NetCDF file (processed data), if needed and possible.
-  if ~isempty(fieldnames(data_processed)) && ~isempty(netcdf_l1_file)
+  if ~isempty(fieldnames(data_processed)) && ~isempty(netcdf_l1_file) && ~first_run
     disp('Generating NetCDF L1 output...');
     try
       outputs.netcdf_l1 = generateOutputNetCDF( ...
@@ -649,7 +672,7 @@ for deployment_idx = 1:numel(deployment_list)
 
 
   %% Generate processed data figures.
-  if ~isempty(fieldnames(data_processed)) && ~isempty(figure_dir)
+  if ~isempty(fieldnames(data_processed)) && ~isempty(figure_dir) && ~first_run
     disp('Generating figures from processed data...');
     try
       figures.figproc = generateGliderFigures( ...
@@ -664,9 +687,22 @@ for deployment_idx = 1:numel(deployment_list)
 
 
   %% Grid processed glider data.
-  if ~isempty(fieldnames(data_processed))
+  if ~isempty(fieldnames(data_processed)) && ~first_run
     disp('Gridding glider data...');
+    try %% Generate processed data figures.
+  if ~isempty(fieldnames(data_processed)) && ~isempty(figure_dir)
+    disp('Generating figures from processed data...');
     try
+      figures.figproc = generateGliderFigures( ...
+        data_processed, figproc_options, ...
+        'date', datestr(posixtime2utc(posixtime()), 'yyyy-mm-ddTHH:MM:SS+00:00'), ...
+        'dirname', figure_dir);
+    catch exception
+      disp('Error generating processed data figures:');
+      disp(getReport(exception, 'extended'));
+    end
+  end
+
       [data_gridded, meta_gridded] = ...
         gridGliderData(data_processed, meta_processed, gridding_options);
     catch exception
@@ -677,7 +713,7 @@ for deployment_idx = 1:numel(deployment_list)
 
 
   %% Generate L2 (gridded data) netcdf file, if needed and possible.
-  if ~isempty(fieldnames(data_gridded)) && ~isempty(netcdf_l2_file)
+  if ~isempty(fieldnames(data_gridded)) && ~isempty(netcdf_l2_file) && ~first_run
     disp('Generating NetCDF L2 output...');
     try
       outputs.netcdf_l2 = generateOutputNetCDF( ...
@@ -696,7 +732,7 @@ for deployment_idx = 1:numel(deployment_list)
 
 
   %% Generate gridded data figures.
-  if ~isempty(fieldnames(data_gridded)) && ~isempty(figure_dir)
+  if ~isempty(fieldnames(data_gridded)) && ~isempty(figure_dir) && ~first_run
     disp('Generating figures from gridded data...');
     try
       figures.figgrid = generateGliderFigures( ...
@@ -710,154 +746,261 @@ for deployment_idx = 1:numel(deployment_list)
   end
 
 
-  %% Copy selected products to corresponding public location, if needed.
-  if ~isempty(fieldnames(outputs))
-    disp('Copying public outputs...');
-    strloglist = '';
-    output_name_list = fieldnames(outputs);
-    for output_name_idx = 1:numel(output_name_list)
-      output_name = output_name_list{output_name_idx};
-      if isfield(config.paths_public, output_name) ...
-           && ~isempty(config.paths_public.(output_name))
-        output_local_file = outputs.(output_name);
-        output_public_file = ...
-          strfstruct(config.paths_public.(output_name), deployment);
-        output_public_dir = fileparts(output_public_file);
-        [status, attrout] = fileattrib(output_public_dir);
-        if ~status
-          [status, message] = mkdir(output_public_dir);
-        elseif ~attrout.directory
-          status = false;
-          message = 'not a directory';
-        end
-        if status
-          [success, message] = copyfile(output_local_file, output_public_file);
-          if success
-            disp(['Public output ' output_name ' succesfully copied: ' ...
-                  output_public_file '.']);
-            if ~isempty(strloglist)
-                strloglist = strcat(strloglist,{', '});
-            end
-            strloglist = strcat(strloglist,output_public_file);
-          else
-            disp(['Error creating public copy of deployment product ' ...
-                  output_name ': ' output_public_file '.']);
-            disp(message);
-          end
-        else
-          disp(['Error creating public output directory ' ...
-                output_public_dir ':']);
-          disp(message);
-        end
-      end
-    end
-    if ~isempty(strloglist)
-        strloglist = strcat({'__SCB_LOG_MSG_UPDATED_PUBLIC_FILES__ ['}, strloglist, ']'); 
-        disp(strloglist{1});
-    end
-  end
-
-
   %% Copy selected figures to its public location, if needed.
   % Copy all generated figures or only the ones in the include list (if any) 
   % excluding the ones in the exclude list. 
-  if ~isempty(fieldnames(figures)) ...
-      && isfield(config.paths_public, 'figure_dir') ...
-      && ~isempty(config.paths_public.figure_dir)
-    disp('Copying public figures...');
-    public_figure_baseurl = ...
-      strfstruct(config.paths_public.figure_url, deployment);
-    public_figure_dir = ...
-      strfstruct(config.paths_public.figure_dir, deployment);
-    public_figure_include_all = true;
-    public_figure_exclude_none = true;
-    public_figure_include_list = [];
-    public_figure_exclude_list = [];
-    if isfield(config.paths_public, 'figure_include')
-      public_figure_include_all = false;
-      public_figure_include_list = config.paths_public.figure_include;
-    end
-    if isfield(config.paths_public, 'figure_exclude')
-      public_figure_exclude_none = false;
-      public_figure_exclude_list = config.paths_public.figure_exclude;
-    end
-    public_figures = struct();
-    public_figures_local = struct();
-    figure_output_name_list = fieldnames(figures);
-    for figure_output_name_idx = 1:numel(figure_output_name_list)
-      figure_output_name = figure_output_name_list{figure_output_name_idx};
-      figure_output = figures.(figure_output_name);
-      figure_name_list = fieldnames(figure_output);
-      for figure_name_idx = 1:numel(figure_name_list)
-        figure_name = figure_name_list{figure_name_idx};
-        if (public_figure_include_all ...
-            || ismember(figure_name, public_figure_include_list)) ...
-            && (public_figure_exclude_none ...
-            || ~ismember(figure_name, public_figure_exclude_list))
-          if isfield(public_figures_local, figure_name)
-            disp(['Warning: figure ' figure_name ' appears to be duplicated.']);
-          else
-            public_figures_local.(figure_name) = figure_output.(figure_name);
-          end
-        end
+%   if ~isempty(fieldnames(figures)) ...
+%       && isfield(config.paths_public, 'figure_dir') ...%   %% Copy selected products to corresponding public location, if needed.
+%   if ~isempty(fieldnames(outputs))
+%     disp('Copying public outputs...');
+%     strloglist = '';
+%     output_name_list = fieldnames(outputs);
+%     for output_name_idx = 1:numel(output_name_list)
+%       output_name = output_name_list{output_name_idx};
+%       if isfield(config.paths_public, output_name) ...
+%            && ~isempty(config.paths_public.(output_name))
+%         output_local_file = outputs.(output_name);
+%         output_public_file = ...
+%           strfstruct(config.paths_public.(output_name), deployment);
+%         output_public_dir = fileparts(output_public_file);
+%         [status, attrout] = fileattrib(output_public_dir);
+%         if ~status
+%           [status, message] = mkdir(output_public_dir);
+%         elseif ~attrout.directory
+%           status = false;
+%           message = 'not a directory';
+%         end
+%         if status
+%           [success, message] = copyfile(output_local_file, output_public_file);
+%           if success
+%             disp(['Public output ' output_name ' succesfully copied: ' ...
+%                   output_public_file '.']);
+%             if ~isempty(strloglist)
+%                 strloglist = strcat(strloglist,{', '});
+%             end
+%             strloglist = strcat(strloglist,output_public_file);
+%           else
+%             disp(['Error creating public copy of deployment product ' ...
+%                   output_name ': ' output_public_file '.']);
+%             disp(message);
+%           end
+%         else
+%           disp(['Error creating public output directory ' ...
+%                 output_public_dir ':']);
+%           disp(message);
+%         end
+%       end
+%     end
+%     if ~isempty(strloglist)
+%         strloglist = strcat({'__SCB_LOG_MSG_UPDATED_PUBLIC_FILES__ ['}, strloglist, ']'); 
+%         disp(strloglist{1});
+%     end
+%   end
+
+%       && ~isempty(config.paths_public.figure_dir)
+%     disp('Copying public figures...');
+%     public_figure_baseurl = ...
+%       strfstruct(config.paths_public.figure_url, deployment);
+%     public_figure_dir = ...
+%       strfstruct(config.paths_public.figure_dir, deployment);
+%     public_figure_include_all = true;
+%     public_figure_exclude_none = true;
+%     public_figure_include_list = [];
+%     public_figure_exclude_list = [];
+%     if isfield(config.paths_public, 'figure_include')
+%       public_figure_include_all = false;
+%       public_figure_include_list = config.paths_public.figure_include;
+%     end
+%     if isfield(config.paths_public, 'figure_exclude')
+%       public_figure_exclude_none = false;
+%       public_figure_exclude_list = config.paths_public.figure_exclude;
+%     end
+%     public_figures = struct();
+%     public_figures_local = struct();
+%     figure_output_name_list = fieldnames(figures);
+%     for figure_output_name_idx = 1:numel(figure_output_name_list)
+%       figure_output_name = figure_output_name_list{figure_output_name_idx};
+%       figure_output = figures.(figure_output_name);
+%       figure_name_list = fieldnames(figure_output);
+%       for figure_name_idx = 1:numel(figure_name_list)
+%         figure_name = figure_name_list{figure_name_idx};
+%         if (public_figure_include_all ...
+%             || ismember(figure_name, public_figure_include_list)) ...
+%             && (public_figure_exclude_none ...
+%             || ~ismember(figure_name, public_figure_exclude_list))
+%           if isfield(public_figures_local, figure_name)
+%             disp(['Warning: figure ' figure_name ' appears to be duplicated.']);
+%           else
+%             public_figures_local.(figure_name) = figure_output.(figure_name);
+%           end
+%         end
+%       end
+%     end
+%     public_figure_name_list = fieldnames(public_figures_local);
+%     if ~isempty(public_figure_name_list)
+%       [status, attrout] = fileattrib(public_figure_dir);
+%       if ~status
+%         [status, message] = mkdir(public_figure_dir);
+%       elseif ~attrout.directory
+%         status = false;
+%         message = 'not a directory';
+%       end
+%       if status
+%         for public_figure_name_idx = 1:numel(public_figure_name_list)
+%           public_figure_name = public_figure_name_list{public_figure_name_idx};
+%           figure_local = public_figures_local.(public_figure_name);
+%           figure_public = figure_local;
+%           figure_public.url = ...
+%             [public_figure_baseurl '/' ...
+%              figure_public.filename '.' figure_public.format];
+%           figure_public.dirname = public_figure_dir;
+%           figure_public.fullfile = ...
+%             fullfile(figure_public.dirname, ...
+%                      [figure_public.filename '.' figure_public.format]);
+%           [success, message] = ...
+%             copyfile(figure_local.fullfile, figure_public.fullfile);
+%           if success
+%             public_figures.(public_figure_name) = figure_public;
+%             disp(['Public figure ' public_figure_name ' succesfully copied.']);
+%           else
+%             disp(['Error creating public copy of figure ' ...
+%                   public_figure_name ': ' figure_public.fullfile '.']);
+%             disp(message);
+%           end
+%         end
+%       else
+%         disp(['Error creating public figure directory ' public_figure_dir ':']);
+%         disp(message);
+%       end
+%     end
+%     % Write the figure information to the JSON service file.
+%     if isfield(config.paths_public, 'figure_info') ...
+%         && ~isempty(config.paths_public.figure_info)
+%       disp('Generating figure information service file...');
+%       public_figure_info_file = ...
+%         strfstruct(config.paths_public.figure_info, deployment);
+%       try
+%         savejson(public_figures, public_figure_info_file);
+%         disp(['Figure information service file successfully generated: ' ...
+%               public_figure_info_file]);
+%       catch exception
+%         disp(['Error creating figure information service file ' ...
+%               public_figure_info_file ':']);
+%         disp(message);
+%       end
+%     end
+%   end
+  
+  
+
+  %% Make plots to find start and stop times
+  if first_run
+      % Find the index of the CTD pressure for the first and last dives to a certain depth
+      start_depth_limit = 199;
+      end_depth_limit   = 99;
+      first_good_CTD    = find(data_processed.pressure>start_depth_limit,1);
+      last_good_CTD     = find(data_processed.pressure>end_depth_limit,1, 'last');
+      
+      % Get the start index of the first profile for first_good_CTD
+      start_index = find(data_processed.profile_index == data_processed.profile_index(first_good_CTD),1);
+      end_index = find(data_processed.profile_index == data_processed.profile_index(last_good_CTD),1,'last'); % should be last
+      disp(['Suggested first timestamp: ' datestr(ut2mt(data_processed.time(start_index)),'yyyy.mm.dd HH:MM:SS')]);
+      disp(['Suggested last timestamp: ' datestr(ut2mt(data_processed.time(end_index)),'yyyy.mm.dd HH:MM:SS')]);
+      
+      % Use these to plot whole profile
+      start_index_next = find(data_processed.profile_index == data_processed.profile_index(first_good_CTD)+1.5,1);
+      end_index_startof = find(data_processed.profile_index == data_processed.profile_index(last_good_CTD),1);
+
+      % Plot to visually confirm - there may have been issues during deployment testing
+      fh = figure('WindowState', 'maximized'); ah1 = axes('ydir','rev');
+      plot(fh,datetime(ut2mt(data_processed.time),'ConvertFrom','datenum'),data_processed.pressure,'.');
+      hold on
+      
+      % Start
+      plot(fh,datetime(ut2mt(data_processed.time(1:start_index_next)),'ConvertFrom','datenum'),data_processed.pressure(1:start_index_next),'r.');
+      plot(fh,datetime(ut2mt(data_processed.time(start_index)),'ConvertFrom','datenum'),0,'o','MarkerEdgeColor','k','MarkerFaceColor','g','MarkerSize',10)
+
+      % End
+      plot(fh,datetime(ut2mt(data_processed.time(end_index_startof:end_index)),'ConvertFrom','datenum'),data_processed.pressure(end_index_startof:end_index),'r.');
+      plot(fh,datetime(ut2mt(data_processed.time(end_index)),'ConvertFrom','datenum'),0,'o','MarkerEdgeColor','k','MarkerFaceColor','y','MarkerSize',10)
+      
+      legend('All CTD pressure data found in folder',...
+          ['first ' num2str(start_index_next) ' timestamps'],... 
+      ['suggested start time: ' datestr(ut2mt(data_processed.time(start_index)),'yyyy.mm.dd HH:MM:SS')],...
+      ['last ' num2str(length(data_processed.time)-end_index) ' timestamps'],...
+      ['suggested end time: ' datestr(ut2mt(data_processed.time(end_index)),'yyyy.mm.dd HH:MM:SS')],...
+          'Location','southwest')
+      title('Identify the start and end of deployment timestamps')
+      ylabel('Depth from CTD (m)')
+      if ~exist(figure_dir,'dir')
+          mkdir(figure_dir)
       end
-    end
-    public_figure_name_list = fieldnames(public_figures_local);
-    if ~isempty(public_figure_name_list)
-      [status, attrout] = fileattrib(public_figure_dir);
-      if ~status
-        [status, message] = mkdir(public_figure_dir);
-      elseif ~attrout.directory
-        status = false;
-        message = 'not a directory';
-      end
-      if status
-        for public_figure_name_idx = 1:numel(public_figure_name_list)
-          public_figure_name = public_figure_name_list{public_figure_name_idx};
-          figure_local = public_figures_local.(public_figure_name);
-          figure_public = figure_local;
-          figure_public.url = ...
-            [public_figure_baseurl '/' ...
-             figure_public.filename '.' figure_public.format];
-          figure_public.dirname = public_figure_dir;
-          figure_public.fullfile = ...
-            fullfile(figure_public.dirname, ...
-                     [figure_public.filename '.' figure_public.format]);
-          [success, message] = ...
-            copyfile(figure_local.fullfile, figure_public.fullfile);
-          if success
-            public_figures.(public_figure_name) = figure_public;
-            disp(['Public figure ' public_figure_name ' succesfully copied.']);
-          else
-            disp(['Error creating public copy of figure ' ...
-                  public_figure_name ': ' figure_public.fullfile '.']);
-            disp(message);
-          end
-        end
-      else
-        disp(['Error creating public figure directory ' public_figure_dir ':']);
-        disp(message);
-      end
-    end
-    % Write the figure information to the JSON service file.
-    if isfield(config.paths_public, 'figure_info') ...
-        && ~isempty(config.paths_public.figure_info)
-      disp('Generating figure information service file...');
-      public_figure_info_file = ...
-        strfstruct(config.paths_public.figure_info, deployment);
-      try
-        savejson(public_figures, public_figure_info_file);
-        disp(['Figure information service file successfully generated: ' ...
-              public_figure_info_file]);
-      catch exception
-        disp(['Error creating figure information service file ' ...
-              public_figure_info_file ':']);
-        disp(message);
-      end
-    end
+      saveas(fh,fullfile(figure_dir,'timestamps_figure.fig'))
   end
+  
+  
+  %% Deployment Summary
+  % Put all fields from deployment database in here
+  id = ['g' num2str(deployment_table.MISSIONNUMBER)];
+  deployment_fields = fieldnames(deployment_table);
+  summary.data_characteristics.title = [num2str(deployment_table.MISSIONNUMBER), '-', deployment_table.INTERNALMISSIONID];
+  for i = 1:numel(deployment_fields)
+      summary.deployment_characteristics.(deployment_fields{i}) = deployment_table.(deployment_fields{i});
+  end
+  
+  summary.data_characteristics.first_time_stamp = datestr(ut2mt(data_processed.time(1)),'yyyy.mm.dd HH:MM:SS');
+  summary.data_characteristics.last_time_stamp = datestr(ut2mt(data_processed.time(end)),'yyyy.mm.dd HH:MM:SS');
+  summary.data_characteristics.duration_days = sprintf('%.1f',ut2mt(data_processed.time(end))-ut2mt(data_processed.time(1)));
+  summary.data_characteristics.profiles =  floor(data_processed.profile_index(end));
+  summary.data_characteristics.distance = sprintf('%.0f',max(data_processed.distance_over_ground));
+  summary.data_characteristics.longitude_start = data_processed.longitude(find(~isnan(data_processed.longitude),1));
+  summary.data_characteristics.longitude_end = data_processed.longitude(find(~isnan(data_processed.longitude),1,'last'));
+  summary.data_characteristics.latitude_start = data_processed.latitude(find(~isnan(data_processed.latitude),1));
+  summary.data_characteristics.latitude_end = data_processed.latitude(find(~isnan(data_processed.latitude),1,'last'));
+  summary.data_characteristics.longitude_min = min(data_processed.longitude);
+  summary.data_characteristics.longitude_max = max(data_processed.longitude);
+  summary.data_characteristics.latitude_min = min(data_processed.latitude);
+  summary.data_characteristics.latitude_max = max(data_processed.latitude);
+  summary.data_characteristics.depth_min = sprintf('%.f',min(data_processed.depth));
+  summary.data_characteristics.depth_max = sprintf('%.f',max(data_processed.depth));
+  summary.data_characteristics.temperature_min = sprintf('%.2f',min(data_processed.temperature));
+  summary.data_characteristics.temperature_max = sprintf('%.2f',max(data_processed.temperature));
+  summary.data_characteristics.salinity_min = sprintf('%.2f',min(data_processed.salinity));
+  summary.data_characteristics.salinity_max = sprintf('%.2f',max(data_processed.salinity));
+  summary.data_characteristics.density_min = sprintf('%.2f',min(data_processed.density));
+  summary.data_characteristics.density_max = sprintf('%.2f',max(data_processed.density));
+  
+  ll = numel(data_gridded.time);
+  div = 100;
+  lineno = 0;
+  for i = 1:round(ll/div):ll
+      lineno = lineno + 1;
+      summary.tracks.time{lineno,1} = datestr(ut2mt(data_gridded.time(i)),'yyyy-mm-dd HH:MM:ss');
+      summary.tracks.latitude(lineno,1) = data_gridded.latitude(i);
+      summary.tracks.longitude(lineno,1) = data_gridded.longitude(i);
+  end
+  
+  re_json_code = jsonencode(summary);
+  fid = fopen(deployment_summary,'wt');
+  fprintf(fid,'%s',re_json_code);
+  fclose(fid);
+  
+  % Save to master json file
+  % If files does not exist create empty structure
+  if exist(all_deployments_summary,'file')
+      json_code = fileread(all_deployments_summary);
+      json_text = jsondecode(json_code);
+      json_text.deployments.(id) = summary;
+  else
+      json_text = struct('deployments',summary);
+  end
+  
+  all_json_code = jsonencode(json_text);
+  fid = fopen(all_deployments_summary,'wt');
+  fprintf(fid,'%s',all_json_code);
+  fclose(fid);
 
-
+  
   %% Stop deployment processing logging.
   disp(['Deployment processing end time: ' ...
         datestr(posixtime2utc(posixtime()), 'yyyy-mm-ddTHH:MM:SS+00:00')]);
