@@ -91,6 +91,7 @@ function [hfig, haxs, hcts, hlbs, hlns] = plotTSDiagram(varargin)
   options = struct();
   options.sdata = [];
   options.tdata = [];
+  options.idata = [];
   options.xlabel = struct();
   options.ylabel = struct();
   options.title = struct();
@@ -182,6 +183,20 @@ function [hfig, haxs, hcts, hlbs, hlns] = plotTSDiagram(varargin)
       'MarkerFaceColor', 0.375 * get(hcts, 'LineColor') + 0.625 * get(haxs, 'Color'), ...
       'MarkerEdgeColor', 0.625 * get(hcts, 'LineColor') + 0.375 * get(haxs, 'Color'), ...
       'Color', 0.625 * get(hcts, 'LineColor') + 0.375 * get(haxs, 'Color'));
+ 
+  % plot last profile
+  num_profiles = floor(max(options.idata));
+  profile_data = (floor(options.idata) <= num_profiles(end)) & (floor(options.idata) >= num_profiles(end)-1);
+  xdata = options.sdata(bsxfun(@and, valid_data, profile_data));
+  ydata = options.tdata(bsxfun(@and, valid_data, profile_data));
+  hold on
+
+  plot(xdata, ydata, 'Marker', 'o', 'MarkerSize', 3, ...
+      'MarkerFaceColor', [224 107 99]/256, ...
+      'MarkerEdgeColor', [71, 66, 65]/256, ...
+      'LineStyle', '-', 'LineWidth', 0.25 * get(hcts, 'LineWidth'));
+  
+
   %{
   %num_profiles = floor(max(options.cdata));
   %hsct = plot(haxs, zeros(2, num_profiles), zeros(2, num_profiles));

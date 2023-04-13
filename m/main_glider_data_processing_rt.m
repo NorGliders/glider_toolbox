@@ -19,7 +19,7 @@
 %          -- Select reference sensors for time and space coordinates.
 %             Perform unit conversions if necessary.
 %          -- Select extra navigation sensors: waypoints, pitch, depth...
-%             Perform unit conversions if necessary.
+% %             Perform unit conversions if necessary
 %          -- Select sensors of interest: CTD, oxygen, ocean color...
 %             Perform unit conversions and factory calibrations if necessary.
 %      - Process preprocessed data to obtain well referenced trajectory data
@@ -319,7 +319,10 @@ else
 end
 
 %% Update Active_NorGliders.kml
-update_active_norgliders_kml(config.paths_local.root_dir, {deployment_list.deployment_name})
+% HACK to include SG deployments!!
+seagliders_missions = {'sg563_SWOT_lofoten_Jan2023', 'sg564_NorEMSO_Greenland_Feb2023'};
+all_missions = [{deployment_list.deployment_name},seagliders_missions];
+update_active_norgliders_kml(config.paths_local.root_dir, all_missions)
 
 
 %% Process active deployments.
@@ -626,7 +629,7 @@ for deployment_idx = 1:numel(deployment_list)
             end
 
             % Append new files to table
-            if numel(new_logs)  %% SET TRUE TO GENERATE NEW JSON FILE!!!
+            if 1 %numel(new_logs)  %% SET TRUE TO GENERATE NEW JSON FILE!!!
                 processed_logs = updateLogTable(processed_logs, new_logs, glider_name);
                 % Save copy to project dir
                 writetable(processed_logs, processed_logs_file,'WriteRowNames',true);

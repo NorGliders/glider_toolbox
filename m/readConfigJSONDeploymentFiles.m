@@ -81,7 +81,13 @@ function [ readvals ] = readConfigJSONDeploymentFiles( fconfig, varargin )
           %% Read configuration file
           this_file = fullfile(fconfig,deploy_jsons{i});
           fprintf(1, 'Found EGO deployment file: %s\n', deploy_jsons{i});
-          data = loadjson(this_file);  
+          % FE 11.4.2023
+          try
+              data = loadjson(this_file);
+          catch
+              json_code = fileread(this_file);
+              data = jsondecode(json_code);
+          end
           %deployment_id(i,1) = 1; 
           deployment_name{i,1} = data.global_attributes.deployment_code;
           start_date = datenum(data.glider_deployment.DEPLOYMENT_START_DATE,'yyyymmddHHMMSS');

@@ -178,7 +178,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 %% Debug settings
-first_run = true; % use this to plot all data in folder and then estimate actual start and end date
+first_run = false; % use this to plot all data in folder and then estimate actual start and end date
 debugg = false;
 if debugg
     dbstop if error

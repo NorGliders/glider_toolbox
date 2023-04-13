@@ -391,6 +391,7 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.temperature_salinity.plotfunc = @plotTSDiagram;
   figures_proc.temperature_salinity.dataopts.sdata = 'salinity';
   figures_proc.temperature_salinity.dataopts.tdata = 'temperature';
+  figures_proc.temperature_salinity.dataopts.idata = 'profile_index'; % FE 01.2023
   figures_proc.temperature_salinity.plotopts.xlabel = setfield(default_label, 'String', 'salinity (PSU)');
   figures_proc.temperature_salinity.plotopts.ylabel = setfield(default_label, 'String', 'temperature (deg C)');
   figures_proc.temperature_salinity.plotopts.title = setfield(default_title, 'String', {''; 'Temperature-Salinity diagram on sigma-t contours'});
