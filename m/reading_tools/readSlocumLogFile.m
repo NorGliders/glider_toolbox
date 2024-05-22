@@ -65,8 +65,14 @@ try
                 throw(ME)
             end
             current_time_num = datenum(current_time_str, 'ddd mmm dd HH:MM:SS yyyy');
-            surf_data.current_time = string(datestr(current_time_num, 'yyyy-mm-dd HH:MM:SS'));
-            surf_data.mission_time = str2num(tline(strfind(tline,'MT:')+3:end));
+            surf_data.current_time = string(datestr(current_time_num, 'yyyy-mm-dd HH:MM:SS')); 
+            mt = str2num(tline(strfind(tline,'MT:')+3:end));
+            if ~isempty(mt) && isnumeric(mt)
+                surf_data.mission_time = str2num(tline(strfind(tline,'MT:')+3:end));
+            else
+                surf_data.mission_time = NaN;
+            end
+                    
             
             % Read positions
             tline = fgetl(fid);
@@ -80,15 +86,25 @@ try
             tline = fgetl(fid);
             tline = fgetl(fid);
             tline = fgetl(fid);
-            if numel(tline) < 60
+            if numel(tline) < 60 || ~contains(tline, 'GPS Location:')
                 ME = MException('MyComponent:noSuchVariable', ...
                     'No GPS Str: ',tline);
                 throw(ME)
             end
-            surf_data.GPS_lat = nmea2deg(str2num(tline(strfind(tline,':')+1:strfind(tline,'N')-1)));
-            surf_data.GPS_lon = nmea2deg(str2num(tline(strfind(tline,'N')+1:strfind(tline,'E')-1)));
-            surf_data.GPS_time = string(datestr(current_time_num - str2num(tline(strfind(tline,'measured')+8:strfind(tline,'secs')-1)),'yyyy-mm-dd HH:MM:SS'));
             
+            
+            if ~isempty(nmea2deg(str2num(tline(strfind(tline,':')+1:strfind(tline,'N')-1))))
+                surf_data.GPS_lat = nmea2deg(str2num(tline(strfind(tline,':')+1:strfind(tline,'N')-1)));
+            else surf_data.GPS_lat = [];
+            end
+            if ~isempty(nmea2deg(str2num(tline(strfind(tline,'N')+1:strfind(tline,'E')-1))))
+                surf_data.GPS_lon = nmea2deg(str2num(tline(strfind(tline,'N')+1:strfind(tline,'E')-1)));
+            else surf_data.GPS_lon = [];
+            end
+            if ~isempty(string(datestr(current_time_num - str2num(tline(strfind(tline,'measured')+8:strfind(tline,'se')-1)),'yyyy-mm-dd HH:MM:SS')))
+                surf_data.GPS_time = string(datestr(current_time_num - str2num(tline(strfind(tline,'measured')+8:strfind(tline,'se')-1)),'yyyy-mm-dd HH:MM:SS'));
+            else surf_data.GPS_time = ''; 
+            end
             
             % Read all sensors
             j=0;

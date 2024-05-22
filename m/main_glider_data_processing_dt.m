@@ -23,7 +23,7 @@
 %             Perform unit conversions if necessary.
 %          -- Select extra navigation sensors: waypoints, pitch, depth...
 %             Perform unit conversions if necessary.
-%          -- Select sensors of interest: CTD, oxygen, ocean color...
+%          -- Select sensors of interest: CTD,   oxygen, ocean color...
 %             Perform unit conversions and factory calibrations if necessary.
 %      - Process preprocessed data to obtain well referenced trajectory data
 %        with new derived measurements and corrections:
@@ -560,9 +560,9 @@ for deployment_idx = 1:numel(deployment_list)
     deployment.source_files = sprintf('%s\n', source_files{:});
   end
   
-  %% Update NetCDF file attributes
-  %netcdf_l0_options.attributes
-  %dummy = updateNetCDFattributes(netcdf_l0_options.attributes, )
+  % Update NetCDF file attributes
+%   netcdf_l0_options.attributes
+%   dummy = updateNetCDFattributes(netcdf_l0_options.attributes, )
   
 
   %% Generate L0 NetCDF file (raw/preprocessed data), if needed and possible.
@@ -637,7 +637,6 @@ for deployment_idx = 1:numel(deployment_list)
 
   clear data_raw meta_raw
   
-  % probably dies here
   %% Process preprocessed glider data.
   if ~isempty(fieldnames(data_preprocessed))
     disp('Processing glider data...');
@@ -709,7 +708,24 @@ for deployment_idx = 1:numel(deployment_list)
       disp('Error gridding glider deployment data:');
       disp(getReport(exception, 'extended'));
     end
+  end %% Generate L2 (gridded data) netcdf file, if needed and possible.
+  if ~isempty(fieldnames(data_gridded)) && ~isempty(netcdf_l2_file) && ~first_run
+    disp('Generating NetCDF L2 output...');
+    try
+      outputs.netcdf_l2 = generateOutputNetCDF( ...
+        netcdf_l2_file, data_gridded, meta_gridded, deployment, ...
+        netcdf_l2_options.variables, ...
+        netcdf_l2_options.dimensions, ...
+        netcdf_l2_options.attributes);
+      disp(['Output NetCDF L2 (gridded data) generated: ' ...
+            outputs.netcdf_l2 '.']);
+    catch exception
+      disp(['Error generating NetCDF L2 (gridded data) output ' ...
+            netcdf_l2_file ':']);
+      disp(getReport(exception, 'extended'));
+    end
   end
+
 
 
   %% Generate L2 (gridded data) netcdf file, if needed and possible.
@@ -755,7 +771,20 @@ for deployment_idx = 1:numel(deployment_list)
 %     disp('Copying public outputs...');
 %     strloglist = '';
 %     output_name_list = fieldnames(outputs);
-%     for output_name_idx = 1:numel(output_name_list)
+%     for output_name_idx = 1:numel(output_name_list)%   %% Generate processed data figures.
+%   if ~isempty(fieldnames(data_processed)) && ~isempty(figure_dir) && ~first_run
+%     disp('Generating figures from processed data...');
+%     try
+%       figures.figproc = generateGliderFigures( ...
+%         data_processed, figproc_options, ...
+%         'date', datestr(posixtime2utc(posixtime()), 'yyyy-mm-ddTHH:MM:SS+00:00'), ...
+%         'dirname', figure_dir);
+%     catch exception
+%       disp('Error generating processed data figures:');
+%       disp(getReport(exception, 'extended'));
+%     end
+%   end
+
 %       output_name = output_name_list{output_name_idx};
 %       if isfield(config.paths_public, output_name) ...
 %            && ~isempty(config.paths_public.(output_name))
@@ -891,117 +920,12 @@ for deployment_idx = 1:numel(deployment_list)
 %     end
 %   end
   
-  
-
-  %% Make plots to find start and stop times
-  if first_run
-      % Find the index of the CTD pressure for the first and last dives to a certain depth
-      start_depth_limit = 199;
-      end_depth_limit   = 99;
-      first_good_CTD    = find(data_processed.pressure>start_depth_limit,1);
-      last_good_CTD     = find(data_processed.pressure>end_depth_limit,1, 'last');
-      
-      % Get the start index of the first profile for first_good_CTD
-      start_index = find(data_processed.profile_index == data_processed.profile_index(first_good_CTD),1);
-      end_index = find(data_processed.profile_index == data_processed.profile_index(last_good_CTD),1,'last'); % should be last
-      disp(['Suggested first timestamp: ' datestr(ut2mt(data_processed.time(start_index)),'yyyy.mm.dd HH:MM:SS')]);
-      disp(['Suggested last timestamp: ' datestr(ut2mt(data_processed.time(end_index)),'yyyy.mm.dd HH:MM:SS')]);
-      
-      % Use these to plot whole profile
-      start_index_next = find(data_processed.profile_index == data_processed.profile_index(first_good_CTD)+1.5,1);
-      end_index_startof = find(data_processed.profile_index == data_processed.profile_index(last_good_CTD),1);
-
-      % Plot to visually confirm - there may have been issues during deployment testing
-      fh = figure('WindowState', 'maximized'); ah1 = axes('ydir','rev');
-      plot(fh,datetime(ut2mt(data_processed.time),'ConvertFrom','datenum'),data_processed.pressure,'.');
-      hold on
-      
-      % Start
-      plot(fh,datetime(ut2mt(data_processed.time(1:start_index_next)),'ConvertFrom','datenum'),data_processed.pressure(1:start_index_next),'r.');
-      plot(fh,datetime(ut2mt(data_processed.time(start_index)),'ConvertFrom','datenum'),0,'o','MarkerEdgeColor','k','MarkerFaceColor','g','MarkerSize',10)
-
-      % End
-      plot(fh,datetime(ut2mt(data_processed.time(end_index_startof:end_index)),'ConvertFrom','datenum'),data_processed.pressure(end_index_startof:end_index),'r.');
-      plot(fh,datetime(ut2mt(data_processed.time(end_index)),'ConvertFrom','datenum'),0,'o','MarkerEdgeColor','k','MarkerFaceColor','y','MarkerSize',10)
-      
-      legend('All CTD pressure data found in folder',...
-          ['first ' num2str(start_index_next) ' timestamps'],... 
-      ['suggested start time: ' datestr(ut2mt(data_processed.time(start_index)),'yyyy.mm.dd HH:MM:SS')],...
-      ['last ' num2str(length(data_processed.time)-end_index) ' timestamps'],...
-      ['suggested end time: ' datestr(ut2mt(data_processed.time(end_index)),'yyyy.mm.dd HH:MM:SS')],...
-          'Location','southwest')
-      title('Identify the start and end of deployment timestamps')
-      ylabel('Depth from CTD (m)')
-      if ~exist(figure_dir,'dir')
-          mkdir(figure_dir)
-      end
-      saveas(fh,fullfile(figure_dir,'timestamps_figure.fig'))
-  end
-  
-  
-  %% Deployment Summary
-  % Put all fields from deployment database in here
-  id = ['g' num2str(deployment_table.MISSIONNUMBER)];
-  deployment_fields = fieldnames(deployment_table);
-  summary.data_characteristics.title = [num2str(deployment_table.MISSIONNUMBER), '-', deployment_table.INTERNALMISSIONID];
-  for i = 1:numel(deployment_fields)
-      summary.deployment_characteristics.(deployment_fields{i}) = deployment_table.(deployment_fields{i});
-  end
-  
-  summary.data_characteristics.first_time_stamp = datestr(ut2mt(data_processed.time(1)),'yyyy.mm.dd HH:MM:SS');
-  summary.data_characteristics.last_time_stamp = datestr(ut2mt(data_processed.time(end)),'yyyy.mm.dd HH:MM:SS');
-  summary.data_characteristics.duration_days = sprintf('%.1f',ut2mt(data_processed.time(end))-ut2mt(data_processed.time(1)));
-  summary.data_characteristics.profiles =  floor(data_processed.profile_index(end));
-  summary.data_characteristics.distance = sprintf('%.0f',max(data_processed.distance_over_ground));
-  summary.data_characteristics.longitude_start = data_processed.longitude(find(~isnan(data_processed.longitude),1));
-  summary.data_characteristics.longitude_end = data_processed.longitude(find(~isnan(data_processed.longitude),1,'last'));
-  summary.data_characteristics.latitude_start = data_processed.latitude(find(~isnan(data_processed.latitude),1));
-  summary.data_characteristics.latitude_end = data_processed.latitude(find(~isnan(data_processed.latitude),1,'last'));
-  summary.data_characteristics.longitude_min = min(data_processed.longitude);
-  summary.data_characteristics.longitude_max = max(data_processed.longitude);
-  summary.data_characteristics.latitude_min = min(data_processed.latitude);
-  summary.data_characteristics.latitude_max = max(data_processed.latitude);
-  summary.data_characteristics.depth_min = sprintf('%.f',min(data_processed.depth));
-  summary.data_characteristics.depth_max = sprintf('%.f',max(data_processed.depth));
-  summary.data_characteristics.temperature_min = sprintf('%.2f',min(data_processed.temperature));
-  summary.data_characteristics.temperature_max = sprintf('%.2f',max(data_processed.temperature));
-  summary.data_characteristics.salinity_min = sprintf('%.2f',min(data_processed.salinity));
-  summary.data_characteristics.salinity_max = sprintf('%.2f',max(data_processed.salinity));
-  summary.data_characteristics.density_min = sprintf('%.2f',min(data_processed.density));
-  summary.data_characteristics.density_max = sprintf('%.2f',max(data_processed.density));
-  
-  ll = numel(data_gridded.time);
-  div = 100;
-  lineno = 0;
-  for i = 1:round(ll/div):ll
-      lineno = lineno + 1;
-      summary.tracks.time{lineno,1} = datestr(ut2mt(data_gridded.time(i)),'yyyy-mm-dd HH:MM:ss');
-      summary.tracks.latitude(lineno,1) = data_gridded.latitude(i);
-      summary.tracks.longitude(lineno,1) = data_gridded.longitude(i);
-  end
-  
-  re_json_code = jsonencode(summary);
-  fid = fopen(deployment_summary,'wt');
-  fprintf(fid,'%s',re_json_code);
-  fclose(fid);
-  
-  % Save to master json file
-  % If files does not exist create empty structure
-  if exist(all_deployments_summary,'file')
-      json_code = fileread(all_deployments_summary);
-      json_text = jsondecode(json_code);
-      json_text.deployments.(id) = summary;
-  else
-      json_text = struct('deployments',summary);
-  end
-  
-  all_json_code = jsonencode(json_text);
-  fid = fopen(all_deployments_summary,'wt');
-  fprintf(fid,'%s',all_json_code);
-  fclose(fid);
+   
+%% Deployment Summary
+json_summary_main_glider_processing_dt(deployment_table, data_processed, figure_dir, deployment_summary, all_deployments_summary)  
 
   
-  %% Stop deployment processing logging.
+   %% Stop deployment processing logging.
   disp(['Deployment processing end time: ' ...
         datestr(posixtime2utc(posixtime()), 'yyyy-mm-ddTHH:MM:SS+00:00')]);
   diary('off');

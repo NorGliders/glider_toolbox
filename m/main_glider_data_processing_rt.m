@@ -1,5 +1,6 @@
 %MAIN_GLIDER_DATA_PROCESSING_RT  Run near real time glider processing chain.
 % Last update 25.10.22 FE
+% MAY 22 2024
 %
 % TODO:
 %       - UPDATE KML
@@ -10,7 +11,7 @@
 %  Description:
 %    This script develops the full processing chain for real time glider data:
 %      - Check for active deployments from deployment information source.
-%      - Download new or updated deployment raw data files.
+%      - Download new or updated deployment raw data files.bør
 %      - Convert downloaded files to human readable format.
 %      - Load data from all files in a single and consistent structure.
 %      - Generate standarized product version of raw data (NetCDF level 0).
@@ -21,7 +22,7 @@
 %          -- Select extra navigation sensors: waypoints, pitch, depth...
 % %             Perform unit conversions if necessary
 %          -- Select sensors of interest: CTD, oxygen, ocean color...
-%             Perform unit conversions and factory calibrations if necessary.
+%             Perform unit conversions and factory calibrations if necxessary.
 %      - Process preprocessed data to obtain well referenced trajectory data
 %        with new derived measurements and corrections:
 %          -- Fill missing values of time and space reference sensors.
@@ -280,35 +281,34 @@ if user_db_access
         'server', config.db_access.server, 'driver', config.db_access.driver, ...
         'fields', config.db_fields);
 else
-%    disp(['Reading information of glider deployments from ' deployment_file '...']);
+    %    disp(['Reading information of glider deployments from ' deployment_file '...']);
     try
         %read_deployment = readConfigFile(deployment_file);
-        deployment_list = readConfigJSONDeploymentFiles(config.paths_local.root_dir);  
+        deployment_list = readConfigJSONDeploymentFiles(config.paths_local.root_dir);
         %deployment_list = read_deployment.deployment_list;
-%         
-%         %Check/modify format of deployment_list
-%         for i=1:numel(required_deployment_strparam)
-%             fieldname = required_deployment_strparam(i);
-%             if ~isfield( deployment_list, fieldname{1})
-%                 disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
-%                 return;
-%             end
-%         end
-%         for i=1:numel(required_deployment_numparam)
-%             fieldname = required_deployment_numparam(i);
-%             if ~isfield( deployment_list, fieldname{1})
-%                 disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
-%                 return;
-%             else
-%                 for j=1:numel(deployment_list)
-%                     deployment_list(j).(fieldname{1}) = str2num(deployment_list(j).(fieldname{1}));
-%                 end
-%             end
-%         end
-     catch exception
-        disp(['Error reading deployment file ' deployment_file]);
-        disp(getReport(exception, 'extended'));
-     end
+        %
+        %         %Check/modify format of deployment_list
+        %         for i=1:numel(required_deployment_strparam)
+        %             fieldname = required_deployment_strparam(i);
+        %             if ~isfield( deployment_list, fieldname{1})
+        %                 disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
+        %                 return;
+        %             end
+        %         end
+        %         for i=1:numel(required_deployment_numparam)
+        %             fieldname = required_deployment_numparam(i);
+        %             if ~isfield( deployment_list, fieldname{1})
+        %                 disp(['ERROR: Deployment definition does not contain ' fieldname{1}]);
+        %                 return;
+        %             else
+        %                 for j=1:numel(deployment_list)
+        %                     deployment_list(j).(fieldname{1}) = str2num(deployment_list(j).(fieldname{1}));
+        %                 end
+        %             end
+        %         end
+        
+        
+    end
 end
 
 if isempty(deployment_list)
@@ -320,9 +320,9 @@ end
 
 %% Update Active_NorGliders.kml
 % HACK to include SG deployments!!
-seagliders_missions = {'sg563_SWOT_lofoten_Jan2023', 'sg564_NorEMSO_Greenland_Feb2023'};
-all_missions = [{deployment_list.deployment_name},seagliders_missions];
-update_active_norgliders_kml(config.paths_local.root_dir, all_missions)
+seagliders_missions = {'sg564_NorEMSO_Iceland_Jan2024'};
+all_missions = [{deployment_list.deployment_name},seagliders_missions]; 
+update_active_norgliders_kml(config.paths_local.root_dir, all_missions);
 
 
 %% Process active deployments.
@@ -545,15 +545,14 @@ for deployment_idx = 1:numel(deployment_list)
     
     %% Restore permissions back to original
     try
-        cmd_str = ['chmod 2775 ' local_base_dir];
+        cmd_str = ['	 ' local_base_dir];
         [status, cmd_out] = system(cmd_str);
         fprintf(1, '\nRestore file permissions back to original\n\n')
     catch exception
         fprintf(1, '\nError restoring file permissions\n')
         disp(getReport(exception, 'extended'));
     end
-    
-    
+        
     %% Report deployment information.
     disp('Deployment information:')
     disp(['  Glider name          : ' glider_name]);
@@ -629,7 +628,7 @@ for deployment_idx = 1:numel(deployment_list)
             end
 
             % Append new files to table
-            if 1 %numel(new_logs)  %% SET TRUE TO GENERATE NEW JSON FILE!!!
+            if numel(new_logs)  %% SET TRUE TO GENERATE NEW JSON FILE!!!
                 processed_logs = updateLogTable(processed_logs, new_logs, glider_name);
                 % Save copy to project dir
                 writetable(processed_logs, processed_logs_file,'WriteRowNames',true);
@@ -685,7 +684,7 @@ for deployment_idx = 1:numel(deployment_list)
                         end
                     end
                 end
-                updateActiveGlidersJson(processed_logs, segment_list, config.paths_local.active_gliders_json, ego_file, glider_name);
+                updateActiveGlidersJson(processed_logs, segment_list, config.paths_local.active_gliders_json, ego_file, glider_name,seagliders_missions);
             end
 
             fprintf(1, 'Binary data files available: %i. New binary files found: %i\n', numel(total_xbds), numel(new_xbds));
@@ -825,7 +824,7 @@ for deployment_idx = 1:numel(deployment_list)
     
     
     %% Load data from ascii deployment glider files if there is new data.
-    if ~isempty(new_files)
+    if 1 %~isempty(new_files)
         disp('Loading raw deployment data from text files...');
         load_start = utc2posixtime(deployment_start);
         load_final = posixtime();
@@ -1277,7 +1276,60 @@ for deployment_idx = 1:numel(deployment_list)
 %             end
 %         end
 %     end
-    
+
+
+    % Sync to SERVER
+    if  0 %numel(new_logs)  %contains(glider_name, 'odin')
+        %         fprintf(1, '\nCreating light netcdf file for BioSWOT\n')
+        %         try
+        %             cmd_str = ['ncks -C -O -x -v roll,pitch,heading,distance_over_ground,depth_ctd,depth,conductivity,density ' fullfile(local_base_dir,'netcdf',[deployment_name '_L1_data_rt.nc']) ' ' fullfile(local_base_dir,'netcdf',[deployment_name '_L1_data_rt_CTDlight.nc'])];
+        %             [status, cmd_out] = system(cmd_str);
+        %         catch exception
+        %             disp('Error creating light NETCDF');
+        %             disp(getReport(exception, 'extended'));
+        %         end
+        %
+        %         fprintf(1, '\nSyncing ODINs kml and netcdf file to BioSWOT\n')
+        %         try
+        %             cmd_str1 = ['rsync -azP ' fullfile(local_base_dir,[deployment_name '.kml']) ' -e ssh bioswot@instru.osupytheas.fr:' ];
+        %             [status, cmd_out] = system(cmd_str1);
+        %             cmd_str2 = ['rsync -azP ' fullfile(local_base_dir,'netcdf',[deployment_name '_L1_data_rt.nc']) ' -e ssh bioswot@instru.osupytheas.fr:' ];
+        %             [status, cmd_out] = system(cmd_str2);
+        %             cmd_str3 = ['rsync -azP ' fullfile(local_base_dir,'netcdf',[deployment_name '_L1_data_rt_CTDlight.nc']) ' -e ssh bioswot@instru.osupytheas.fr:' ];
+        %             [status, cmd_out] = system(cmd_str3);
+        %         catch exception
+        %             disp('Error syncing files to BioSWOT');
+        %             disp(getReport(exception, 'extended'));
+        %         end
+
+
+        % fprintf(1, '\nSending json and kml data to NORSE\n')
+        % try
+        %     cmd_str1 = ['rsync -azP ' fullfile(local_root_dir,'active_norgliders.kml') ' -e ssh datadrop@munin.epsilonocean.com:.' ];
+        %     [status, cmd_out] = system(cmd_str1);
+        %     cmd_str2 = ['rsync -azP ' fullfile(local_root_dir,'active_norgliders.json') ' -e ssh datadrop@munin.epsilonocean.com:.' ];
+        %     [status, cmd_out] = system(cmd_str2);
+        % catch exception
+        %     disp('Error syncing files to NORSE');
+        %     disp(getReport(exception, 'extended'));
+        % end
+        % ssh -i ~/.ssh/GFIGlider.pem naco@158.39.201.131
+
+        fprintf(1, '\nSending segment folder to GliderPage dev server\n')
+        try
+            %cmd_str1 = ['rsync -azP ' fullfile(local_root_dir,'active_norgliders.kml') ' -e ssh datadrop@munin.epsilonocean.com:.' ];  ~/.ssh/GFIGlider.pem naco@158.39.201.131 -Y
+            % THIS WORKS: rsync -azP -e "ssh -i /home/fel063/.ssh/GFIGlider.pem" gptest.txt naco@158.39.201.131:"/scratch/webdata/gliderdata/urd"
+            %rsync -azP -e "ssh -i /home/fel063/.ssh/GFIGlider.pem" /Data/gfi/projects/slocum/data/real_time/202405_sl_urd_sios_fram/segments/ naco@158.39.201.131:"/scratch/webdata/gliderdata/urd"
+
+            [status, cmd_out] = system(cmd_str1);
+            
+        catch exception
+            disp('Error syncing files to GliderPage dev server');
+            disp(getReport(exception, 'extended'));
+        end
+
+    end
+        
     
     %% Restore permissions back to original
     try
@@ -1305,6 +1357,9 @@ for deployment_idx = 1:numel(deployment_list)
         fprintf(1, '  Number of dat files                   : %i \n',sum(processed_xbds{:,'dat'}==1));
         fprintf(1, '  Number of files that have been plotted: %i \n',sum(processed_xbds{:,'plot_file'}==1));
     end
+    
+    %% Summarise all NorGliders deployments
+    create_norgliders_mission_summary('/Data/gfi/projects/naco/gliderdeployments/Norwegian_Missions.xlsx',fullfile(local_root_dir,'all_norgliders.json'));
     
     %% Stop deployment processing logging.
     fprintf(1, '\nDeployment processing end time: %s\n',datestr(posixtime2utc(posixtime()), 'yyyy-mm-ddTHH:MM:SS+00:00'));

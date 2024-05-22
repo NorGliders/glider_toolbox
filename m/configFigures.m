@@ -167,6 +167,26 @@ function [figures_proc, figures_grid] = configFigures()
   figures_proc.temperature.prntopts.title = 'Temperature section';
   figures_proc.temperature.prntopts.comment = 'Cross section of in situ measured temperature.';
   
+  
+%   % TESTING FLIGHT PARAMS
+%   figures_proc.ballast = struct();
+%   figures_proc.ballast.plotfunc = @plotFlightSection;
+%   figures_proc.ballast.dataopts.xdata = 'time';
+%   figures_proc.ballast.dataopts.ydata = 'm_de_oil_vol';
+%   %figures_proc.ballast.dataopts.cdata = 'temperature';
+%   figures_proc.ballast.plotopts.sdata = markerSize; 
+%   figures_proc.ballast.plotopts.logscale = false;
+%   figures_proc.ballast.plotopts.xlabel = setfield(default_label, 'String', 'time');
+%   figures_proc.ballast.plotopts.ylabel = setfield(default_label, 'String', 'Ballast (cc)');
+%   %figures_proc.ballast.plotopts.clabel = setfield(default_label, 'String', 'ballast (deg C)');
+%   figures_proc.ballast.plotopts.title = setfield(default_title, 'String', 'Ballast (cc)');
+%   %figures_proc.ballast.plotopts.axsprops = setfield(default_axes, 'Ydir', 'reverse');
+%   figures_proc.ballast.plotopts.figprops = default_figure;
+%   figures_proc.ballast.prntopts = default_prntopts;
+%   figures_proc.ballast.prntopts.filename = 'ballast_time';
+%   figures_proc.ballast.prntopts.title = 'ballast section';
+%   figures_proc.ballast.prntopts.comment = 'Cross section of measured ballast.';
+  
   figures_proc.temperaturetime = struct();
   figures_proc.temperaturetime.plotfunc = @plotTransectVerticalSection;
   figures_proc.temperaturetime.dataopts.xdata = 'time';

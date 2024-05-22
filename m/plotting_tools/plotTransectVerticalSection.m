@@ -1,5 +1,5 @@
-function [hfig, haxs, hcba, hsct] = plotTransectVerticalSection(varargin)
-%PLOTTRANSECTVERTICALSECTION  Plot vertical section of scatter data from a glider transect.
+function [hfig, haxs, hcba, hsct] = plotFlightSection(varargin)
+%plotFlightSection  Plot flight section from a glider transect.
 %
 %  Syntax:
 %    PLOTTRANSECTVERTICALSECTION(OPTIONS)
@@ -211,7 +211,7 @@ function [hfig, haxs, hcba, hsct] = plotTransectVerticalSection(varargin)
                      crange_quantiles * numel(cdata_sorted) + 1.5);
   end
   xrange = [min(options.xdata(:)) max(options.xdata(:))];
-  yrange = [min(options.ydata(:)) max(options.ydata(:))];
+  yrange = [0 ceil(max(options.ydata(:))/50)*50]; % [min(options.ydata(:)) max(options.ydata(:))];
   if options.logscale
     % Hack to plot a color bar with logarithmic scale and linear ticks.
     % This code should go after colormap call, otherwise colormap resets ticks.

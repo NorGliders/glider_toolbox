@@ -61,8 +61,7 @@ function [data, metadata] = getDeploymentInfoXLS(spreadsheet)
 %
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- narginchk(1,1);
+     
 
  
 %% --- Setup --------------------------------

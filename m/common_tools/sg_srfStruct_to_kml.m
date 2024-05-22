@@ -12,19 +12,48 @@ slocum_icon = '/assets/img/slocum_glider.png';
 waypoint_icon = '/assets/img/star.png';
 shield_icon = '/assets/img/shield.png';
 sg_path = '/Data/gfi/projects/naco/gliderbak/';
-sg_op_res = '/Data/gfi/projects/naco/Op_resources/';
+%sg_op_res = '/Data/gfi/projects/naco/Op_resources/'; FE 7.6.23
+sg_op_res = '/Data/gfi/projects/slocum/data/real_time';
 RT_dir = '/Data/gfi/projects/slocum/data/real_time';
 
+% Use this colour for glider track
+% yellow
+track_col = struct('durin','FFDE3163',...
+'dvalin','FFDFFF00',...
+'urd','FFFFBF00',...
+'verd','FFFF7F50',...
+'skuld','FFDE3163',...
+'sg560','FF9FE2BF',...
+'sg561','FF40E0D0',...
+'odin','FF6495ED',...
+'sg564','FFCCCCFF');
+
 % DEV ONLY
-if nargin < 1
-    sg = 'sg564';
-    sg_mission = 'sg564_NorEMSO_Greenland_Feb2023';
-    %sg = 'sg563';
-    %sg_mission = 'sg563_SWOT_lofoten_Jan2023';
-    disp(['DEV ONLY!!! Using glider ' sg ' and deployment ' sg_mission])
-end
+% if nargin < 1
+%     sg = 'sg564';
+%     sg_mission = 'sg564_NorEMSO_Greenland_Feb2023';
+%     %sg = 'sg563';
+%     %sg_mission = 'sg563_SWOT_lofoten_Jan2023';
+%     disp(['DEV ONLY!!! Using glider ' sg ' and deployment ' sg_mission])
+% end
 sn = sg(3:end);
-project_dir = fullfile(sg_op_res,sg_mission);
+%project_dir = fullfile(sg_op_res,sg_mission);FE 7.6.23
+project_dir = fullfile(sg_op_res);
+
+% Use this colour for glider track
+% yellow
+track_col = struct('durin','FFDE3163',...
+'dvalin','FFDFFF00',...
+'urd','FFFFBF00',...
+'verd','FFFF7F50',...
+'skuld','FFDE3163',...
+'sg560','FF9FE2BF',...
+'sg561','FF40E0D0',...
+'odin','FF6495ED',...
+'sg563','FF8E44AD',... 
+'sg564','FFCCCCFF');
+col = track_col.(sg);
+
 
 disp([getUTC,': Creating kml file for ' sg ', ' sg_mission '.kml']);
 
@@ -109,9 +138,11 @@ while ~feof(fid)
         nmealon = deblank(replace(tline(loc1+3:spaces(loc2)),'=',''));
         % convert to decimal degrees
         [deglat, deglon] = nmea2deg(str2num(nmealat), str2num(nmealon));
-        latitude(length(latitude)+1,1) = deglat;
-        longitude(length(longitude)+1,1) = deglon;
-        names{length(names)+1,1} = name;
+        if ~isempty(deglat) && ~isempty(deglon)
+            latitude(length(latitude)+1,1) = deglat;
+            longitude(length(longitude)+1,1) = deglon;
+            names{length(names)+1,1} = name;
+        end
     end
 end
 fclose(fid);
@@ -139,15 +170,15 @@ ego_file = fullfile(sg_path,sg,'json',[sg_mission '.json']);
 ego_json_code = fileread(ego_file);
 ego = jsondecode(ego_json_code);
 
-% if directory doesn't exit make one
-% This is an ugly hack (the best known way) to check if the directory exists.
-[status, attrout] = fileattrib(project_dir);
-if ~status
-    [status, message] = mkdir(project_dir);
-elseif ~attrout.directory
-    status = false;
-    message = 'not a directory';
-end
+% % if directory doesn't exit make one
+% % This is an ugly hack (the best known way) to check if the directory exists.
+% [status, attrout] = fileattrib(project_dir);
+% if ~status
+%     [status, message] = mkdir(project_dir);
+% elseif ~attrout.directory
+%     status = false;
+%     message = 'not a directory';
+% end
 
 % Vars
 GLIDER = ego.global_attributes.platform_code;
@@ -227,7 +258,7 @@ fprintf(fid,'\n');
 fprintf(fid,'	<!-- Style Information for Glider Track -->\n');
 fprintf(fid,'	<Style id="yellowLine">\n');
 fprintf(fid,'	  <LineStyle>\n');
-fprintf(fid,'	    <color>FF00FFFF</color>\n'); %yellow
+fprintf(fid,'	    <color>%s</color>\n',col); 
 fprintf(fid,'	    <width>3</width>\n');
 fprintf(fid,'	  </LineStyle>\n');
 fprintf(fid,'	</Style> \n');
@@ -237,8 +268,8 @@ fprintf(fid,'\n');
 fprintf(fid,'	<!-- Style Information for Glider Track -->\n');
 fprintf(fid,'	<Style id="whiteLine">\n');
 fprintf(fid,'	  <LineStyle>\n');
-fprintf(fid,'	    <color>FFFFFFFF</color>\n'); %yellow
-fprintf(fid,'	    <width>1</width>\n');
+fprintf(fid,'	    <color>FFFFFFFF</color>\n');
+fprintf(fid,'	    <width>0.5</width>\n');
 fprintf(fid,'	  </LineStyle>\n');
 fprintf(fid,'	</Style> \n');
 
@@ -247,8 +278,8 @@ fprintf(fid,'\n');
 fprintf(fid,'	<!-- Style Information for Surface drift arrow -->\n');
 fprintf(fid,'	<Style id="greenLine">\n');
 fprintf(fid,'	  <LineStyle>\n');
-fprintf(fid,'	    <color>FF00CC33</color>\n');  %green
-fprintf(fid,'	    <width>2</width>\n');
+fprintf(fid,'	    <color>FFFFFFFF</color>\n');  %green
+fprintf(fid,'	    <width>1</width>\n');
 fprintf(fid,'	  </LineStyle>\n');
 fprintf(fid,'	</Style> \n');
 fprintf(fid,'\n');
@@ -462,7 +493,7 @@ fprintf(fid,'		</Placemark>\n');
 % Create markers for all surfacings
 fprintf(fid,'			<Folder>\n');
 fprintf(fid,'				<name>Surfacings</name>\n');
-fprintf(fid,'				<visibility>1</visibility>\n');
+fprintf(fid,'				<visibility>0</visibility>\n');
 fprintf(fid,'				<open>0</open>\n');
 dayno = NaN;
 for ii = (num_surfacings-1):-1:2
@@ -470,6 +501,7 @@ for ii = (num_surfacings-1):-1:2
         fprintf(fid,'<TimeStamp>\n');
         fprintf(fid,'  <when>%s</when>\n',datestr(ut2mt(d1.start_time(ii)),'yyyy.mm.ddTHH:MMZ')); %yyyy-mm-ddTHH:MMZ
         fprintf(fid,'</TimeStamp>\n');
+        fprintf(fid,'	<visibility>0</visibility>\n');
         fprintf(fid,'	<Snippet maxLines="0"></Snippet>\n');
         fprintf(fid,'	<Style>\n');
         fprintf(fid,'		<IconStyle>\n');
@@ -512,6 +544,7 @@ for ii = (num_surfacings-1):-1:2
         fprintf(fid,'  <when>%s</when>\n',datestr(ut2mt(d1.start_time(ii)),'yyyy.mm.ddTHH:MMZ')); %yyyy-mm-ddTHH:MMZ
         fprintf(fid,'</TimeStamp>\n');
         fprintf(fid,'   <name>%s</name>\n',datestr(ut2mt(d1.start_time(ii)),'HH:MM dd.mmm'));
+        fprintf(fid,'	<visibility>0</visibility>\n');
         fprintf(fid,'	<Snippet maxLines="0"></Snippet>\n');
         fprintf(fid,'	<Style>\n');
         fprintf(fid,'		<IconStyle>\n');
@@ -556,7 +589,7 @@ if plot_DAC
     % --- Create depth averaged current vectors
     fprintf(fid,'			<Folder>\n');
     fprintf(fid,'				<name>Depth Averaged Currents</name>\n');
-    fprintf(fid,'				<visibility>1</visibility>\n');
+    fprintf(fid,'				<visibility>0</visibility>\n');
     fprintf(fid,'				<open>0</open>\n');
     
     for ii = (num_surfacings):-1:1
@@ -569,6 +602,7 @@ if plot_DAC
             end
             
             fprintf(fid,'		<Placemark>\n');
+            fprintf(fid,'			<visibility>0</visibility>\n');
             fprintf(fid,'           <TimeStamp>\n');
             fprintf(fid,'               <when>%s</when>\n',datestr(ut2mt(d1.time(ii)),'dd.mmm.yyyy HH:MM'));
             fprintf(fid,'           </TimeStamp>\n');

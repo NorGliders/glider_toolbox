@@ -31,8 +31,11 @@ for i = 1:numel(missions)
     
     % SG or SL?
     if contains(this_mission(1:2),'sg')
-        this_mission_kmlfile = fullfile(WEBURL,'data_sg',this_mission,[this_mission '.kml']);
-        this_mission_local_kmlfile = fullfile('/Data/gfi/projects/naco/Op_resources',this_mission,[this_mission '.kml']);
+        % this is a TEMP FIX, NACO simlink is blocked FE 7.6.23
+%         this_mission_kmlfile = fullfile(WEBURL,'data_sg',this_mission,[this_mission '.kml']);
+%         this_mission_local_kmlfile = fullfile('/Data/gfi/projects/naco/Op_resources',this_mission,[this_mission '.kml']);
+        this_mission_kmlfile = fullfile(WEBURL,'data','real_time',[this_mission '.kml']);
+        this_mission_local_kmlfile = fullfile(realtime_dir,[this_mission '.kml']);
     else
         this_mission_kmlfile = fullfile(WEBURL,'data','real_time',this_mission,[this_mission '.kml']);
         this_mission_local_kmlfile = fullfile(realtime_dir,this_mission,[this_mission '.kml']);
@@ -49,13 +52,14 @@ for i = 1:numel(missions)
         fprintf(fid,'	</Link>\n');
         fprintf(fid,'</NetworkLink>\n');
     end
+    clear this_mission_kmlfile
     
 end
 
 fprintf(fid,'<LookAt>\n');
 fprintf(fid,'   <longitude>%s</longitude>\n','0');
 fprintf(fid,'	<latitude>%s</latitude>\n','70');
-fprintf(fid,'		<altitude>10000</altitude>\n');
+fprintf(fid,'		<altitude>3000000</altitude>\n');
 fprintf(fid,'		<range>1000</range>\n');
 fprintf(fid,'		<tilt>0</tilt>\n');
 fprintf(fid,'		<heading>0</heading>\n');

@@ -7,7 +7,7 @@ function [] = srfStruct_to_kml(processed_logs_file, ego_file)
 
 DAC_HRS = 4; % convert m/s to degrees travelled in 'cfg.DAC_HRS' hours
 plot_DAC = 1;
-have_files = 1
+have_files = 1;
 
 %DEV
 if nargin < 1
@@ -25,7 +25,20 @@ fileparts(processed_logs_file)
 GLIDER = ego.global_attributes.platform_code;
 MISSION = ego.global_attributes.deployment_code;
 outputKmlFilename = [ego.global_attributes.deployment_code,'.kml'];
-transect = {'24hr','48hr','mission'};           
+transect = {'24hr','48hr','mission'};    
+
+% Use this colour for glider track
+% yellow
+track_col = struct('durin','FFDE3163',...
+'dvalin','FFDFFF00',...
+'urd','FFFFBF00',...
+'verd','FFFF7F50',...
+'skuld','FFDE3163',...
+'sg560','FF9FE2BF',...
+'sg561','FF40E0D0',...
+'odin','FF6495ED',...
+'sg564','FFCCCCFF');
+col = track_col.(GLIDER);
 
 % Data path and URLs
 PROJECTDIR = fileparts(processed_logs_file);
@@ -141,7 +154,7 @@ fprintf(fid,'\n');
 fprintf(fid,'	<!-- Style Information for Glider Track -->\n');
 fprintf(fid,'	<Style id="yellowLine">\n');
 fprintf(fid,'	  <LineStyle>\n');
-fprintf(fid,'	    <color>FF00FFFF</color>\n'); %yellow
+fprintf(fid,'	    <color>%s</color>\n',col); 
 fprintf(fid,'	    <width>3</width>\n');
 fprintf(fid,'	  </LineStyle>\n');
 fprintf(fid,'	</Style> \n');
@@ -151,8 +164,8 @@ fprintf(fid,'\n');
 fprintf(fid,'	<!-- Style Information for Surface drift arrow -->\n');
 fprintf(fid,'	<Style id="greenLine">\n');
 fprintf(fid,'	  <LineStyle>\n');
-fprintf(fid,'	    <color>FF00CC33</color>\n');  %green
-fprintf(fid,'	    <width>2</width>\n');
+fprintf(fid,'	    <color>FFFFFFFF</color>\n');  %green
+fprintf(fid,'	    <width>1</width>\n');
 fprintf(fid,'	  </LineStyle>\n');
 fprintf(fid,'	</Style> \n');
 fprintf(fid,'\n');
@@ -616,7 +629,7 @@ if plot_DAC
     % --- Create depth averaged current vectors
     fprintf(fid,'			<Folder>\n');
     fprintf(fid,'				<name>Depth Averaged Currents</name>\n');
-    fprintf(fid,'				<visibility>1</visibility>\n');
+    fprintf(fid,'				<visibility>0</visibility>\n');
     fprintf(fid,'				<open>0</open>\n');
     
     for ii = (num_surfacings):-1:1
@@ -629,6 +642,7 @@ if plot_DAC
             end
             
             fprintf(fid,'		<Placemark>\n');
+            fprintf(fid,'			<visibility>0</visibility>\n');
             fprintf(fid,'           <TimeStamp>\n');
             fprintf(fid,'               <when>%s</when>\n',datestr(logs{ii, 'current_time'},'dd.mmm.yyyy HH:MM'));
             fprintf(fid,'           </TimeStamp>\n');

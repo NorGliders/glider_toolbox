@@ -47,10 +47,10 @@ end
 
 %% --- Set-up ---
 % TEMP
-if strcmp(glider,'verd') || strcmp(glider,'dvalin')
+if strcmp(glider,'urd') || strcmp(glider,'dvalin')
     bat_type = 'lithium rechargeable extended';
 elseif strcmp(glider,'odin')
-    bat_type = '4s primary standard';
+    bat_type = 'lithium rechargeable standard';
 else
     bat_type = '4s primary extended';
 end
@@ -59,7 +59,7 @@ col                 = linspecer(4);
 %start                   = datenum(2021,11,27);   %cfg.DEPLOY_DATE);
 VariableNames       = {'total_non_derated_Ah','total_non_derated_Wh','f_coulomb_battery_capacity', 'undervolts', 'Vcutoff', 'Vmax','Vmin'};
 RowNames            = {'alkaline standard pack', '3s primary pack','3s primary extended','4s primary standard', '4s primary extended', 'lithium rechargeable standard', 'lithium rechargeable extended'};
-days_ago            = 10; % recent projection
+days_ago            = 3; % recent projection
 do_recent_est       = true;
 
 % Tunable parameters
@@ -258,7 +258,7 @@ line('Xdata',[t_fit(1) t_fit(end)],'Ydata',[Vundervolts Vundervolts],'LineStyle'
 line('Xdata',[t_fit(1) t_fit(end)],'Ydata',[Vcutoff Vcutoff],'LineStyle','--','Color','r')
 ylabel('Voltage (V)')
 title('Projected consumption for deployment')
-legend('Measured', 'Linear Fit', 'Undervolts', 'Voltage Cutoff', 'Location', 'NorthEast');
+legend('Measured', 'Linear Fit', 'Undervolts', 'Voltage Cutoff', 'Location', 'SouthWest');
 set(gca,'XLim',[t_fit(1) t_fit(end)],'ylim',[Vmin Vmax])
 datetick('x')
 print_fig(figure_dir)
@@ -292,7 +292,7 @@ set(ah(2),'fontsize',10, 'FontName','Calibri','Position', ah1_pos,'Color','none'
 ylabel(ah(2), 'Amp-hours (Ah)')
 
 % Legend for both axes
-legend(l,{'m_coulomb_amphr_total','Linear Fit','Avg Daily Ahr', 'Daily Ahr'},'fontsize',8,'fontname','Calibri','Interpreter','none','Location','Best');
+legend(l,{'m_coulomb_amphr_total','Linear Fit','Avg Daily Ahr', 'Daily Ahr'},'fontsize',8,'fontname','Calibri','Interpreter','none','Location','NorthWest');
 
 % Second plot
 n = 0;

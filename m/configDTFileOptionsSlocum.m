@@ -68,19 +68,19 @@ function slocum_options = configDTFileOptionsSlocum()
   slocum_options.format_conversion = 1;
   
   % All binary files, renamed or not:
-  % slocum_options.xbd_name_pattern = '^(.*)\.([smdtne]bd)$';
+  % slocum_options.xbd_name_pattern = '^(.*)\.([smdtne]bd)$';   
   % Already renamed binary files of all sizes:
   slocum_options.xbd_name_pattern = '^(\w+-\d{4}-\d+-\d+-\d+)\.([smdtne]bd)$';
   
   % xbd to dba name replacement:
   slocum_options.dba_name_replace = '$1-$2.dba';
   
-  % Navigation files to use (restrict the character set if needed):
-  % slocum_options.dba_name_pattern_nav = '^.*-[smd]bd\.dba$';
-  slocum_options.dba_name_pattern_nav = '^.*-dbd\.dba$';
+  % Navigation files to use (restrict the charaflter set if needed):
+  %slocum_options.dba_name_pattern_nav = '^.*-[smd]bd\.dba$'; %FE temp
+  slocum_options.dba_name_pattern_nav = '^.*-dbd\.dba$'; 
   
   % Science files to use: (restrict the character set if needed):
-  % slocum_options.dba_name_pattern_sci = '^.*-[tne]bd\.dba$';
+  %slocum_options.dba_name_pattern_sci = '^.*-[tne]bd\.dba$'; %FE temp
   slocum_options.dba_name_pattern_sci = '^.*-ebd\.dba$';
   
   % Time sensor column in navigation files:

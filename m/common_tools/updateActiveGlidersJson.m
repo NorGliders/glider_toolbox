@@ -1,11 +1,11 @@
-function [ logs_table ] = updateActiveGlidersJson(logs_table, segment_struct, json_file, ego_json_file, glider)
+function [ logs_table ] = updateActiveGlidersJson(logs_table, segment_struct, json_file, ego_json_file, glider, seagliders_missions)
 
 % updateActiveGlidersJson  Initialize table for processed xbds
 % processed_xbds = updateActiveGlidersJson(logs_table, json_file, glider);
 %  Syntax:
 %    [PROCESSED_XBDS] = updateActiveGlidersJson()
 
-narginchk(5,5);
+narginchk(6,6);
 
 % If files does not exist create empty structure
 if exist(json_file,'file')
@@ -33,7 +33,6 @@ json_text.gliders.(glider).segments = segment_struct;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Hack update the SG gliders, just update this every time for now
-seagliders_missions = {'sg563_SWOT_lofoten_Jan2023', 'sg564_NorEMSO_Greenland_Feb2023'};
 sg_path = '/Data/gfi/projects/naco/gliderbak/';
 if 1
     for i = 1:numel(seagliders_missions)
@@ -62,12 +61,16 @@ if 1
                 nmealon = deblank(replace(tline(loc1+3:spaces(loc2)),'=',''));
                 % convert to decimal degrees
                 [deglat, deglon] = nmea2deg(str2num(nmealat), str2num(nmealon));
-                latitude(length(latitude)+1,1) = deglat;
-                longitude(length(longitude)+1,1) = deglon;
-                names{length(names)+1,1} = name;
+                if ~isempty(deglat) && ~isempty(deglon)
+                    latitude(length(latitude)+1) = deglat;
+                    longitude(length(longitude)+1,1) = deglon;
+                    names{length(names)+1,1} = name;
+                end
             end
         end
         fclose(fid);
+        
+
         
         json_text.gliders.(glider).Waypoints.Latitude = latitude;
         json_text.gliders.(glider).Waypoints.Longitude = longitude;

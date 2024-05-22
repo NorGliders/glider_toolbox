@@ -63,7 +63,7 @@ function [ readvals ] = readConfigJSONDeploymentFiles( fconfig, varargin )
   % List EGO deployment files in real-time directory
   jsons = dir([fconfig,'*.json',]);
   jsons = {jsons.name}';
-  bad_words = {'CTD','active_norgliders'};
+  bad_words = {'CTD','norgliders'};
   deploy_jsons = {};
   
   for i = 1:numel(jsons)

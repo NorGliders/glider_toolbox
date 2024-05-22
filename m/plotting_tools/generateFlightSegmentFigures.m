@@ -229,7 +229,9 @@ if numel(depth) >= 2
                 
                 % Add additional lines based on sensor here
                 if plot_extra
-                    axes(ah(1))
+                    
+                    %%
+                    % *axes(ah(1))*
                     n = n + 1;
                     if strcmp(varname,'m_pitch')
                         l(n) = line(this_time(this_data<0), abs(this_data(this_data<0)),'Parent',ah(1),'col',col(n,:),'Marker','o','MarkerSize',4,'MarkerFaceColor',col(n,:));
